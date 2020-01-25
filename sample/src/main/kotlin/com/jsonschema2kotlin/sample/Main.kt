@@ -10,7 +10,4 @@ fun main() {
         ?: throw FileNotFoundException("Schema not found")
     val root = parseSchema(stream)
     println(root)
-    root.properties.forEach { t, u ->
-        println("key: $t, value: $u")
-    }
 }
