@@ -1,12 +1,11 @@
 package com.jsonschema2kotlin.parser.jsonadapter
 
 import com.jsonschema2kotlin.parser.jsonadapter.PropertyKeys.Companion.ordinalToPropertyKey
-import com.jsonschema2kotlin.parser.model.Properties
-import com.jsonschema2kotlin.parser.model.Property
-import com.jsonschema2kotlin.parser.model.Type
-import com.jsonschema2kotlin.parser.model.buildProperty
+import com.jsonschema2kotlin.parser.model.*
+import com.jsonschema2kotlin.parser.readArray
 import com.jsonschema2kotlin.parser.readObject
 import com.jsonschema2kotlin.parser.skipNameAndValue
+import com.jsonschema2kotlin.parser.utils.Do
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
@@ -29,24 +28,29 @@ internal class PropertiesJsonAdapter : JsonAdapter<Properties>() {
 
     private fun readProperty(reader: JsonReader): Property {
         var type: String? = null
-        var title: String? = null
-        var description: String? = null
-        var subProperties: Properties? = null
+        val propertyHolder = PropertyHolder()
         reader.readObject {
-            when (reader.selectName(PropertyKeys.jsonReaderOptions()).ordinalToPropertyKey()) {
+            Do exhaustive when (reader.selectName(PropertyKeys.jsonReaderOptions()).ordinalToPropertyKey()) {
                 PropertyKeys.TYPE -> type = reader.nextString()
-                PropertyKeys.TITLE -> title = reader.nextString()
-                PropertyKeys.DESCRIPTION -> description = reader.nextString()
-                PropertyKeys.PROPERTIES -> subProperties = readProperties(reader)
+                PropertyKeys.TITLE -> propertyHolder.title = reader.nextString()
+                PropertyKeys.DESCRIPTION -> propertyHolder.description = reader.nextString()
+                PropertyKeys.REQUIRED -> reader.readArray { propertyHolder.required.add(reader.nextString()) }
+                PropertyKeys.PROPERTIES -> propertyHolder.properties = readProperties(reader)
+                PropertyKeys.MINIMUM -> propertyHolder.minimum = reader.nextDouble()
+                PropertyKeys.MAXIMUM -> propertyHolder.maximum = reader.nextDouble()
+                PropertyKeys.EXCLUSIVE_MIN -> propertyHolder.exclusiveMinimum = reader.nextDouble()
+                PropertyKeys.EXCLUSIVE_MAX -> propertyHolder.exclusiveMaximum = reader.nextDouble()
+                PropertyKeys.MIN_LENGTH -> propertyHolder.minLength = reader.nextInt()
+                PropertyKeys.MAX_LENGTH -> propertyHolder.maxLength = reader.nextInt()
+                PropertyKeys.MIN_ITEMS -> propertyHolder.minItems = reader.nextInt()
+                PropertyKeys.MAX_ITEMS -> propertyHolder.maxItems = reader.nextInt()
+                PropertyKeys.MIN_PROPERTIES -> propertyHolder.minProperties = reader.nextInt()
+                PropertyKeys.MAX_PROPERTIES -> propertyHolder.maxProperties = reader.nextInt()
                 null -> reader.skipNameAndValue()
             }
         }
         val typeEnum = enumJsonAdapter.fromJsonValue(type) ?: throw IllegalStateException("Unexpected null enum value")
-        return typeEnum.buildProperty(
-            title = title,
-            description = description,
-            subProperties = subProperties
-        )
+        return typeEnum.buildProperty(propertyHolder)
     }
 
     override fun toJson(writer: JsonWriter, value: Properties?) {

@@ -8,6 +8,7 @@ class Main
 fun main() {
     val stream = Main::class.java.classLoader.getResourceAsStream("sample.schema.json")
         ?: throw FileNotFoundException("Schema not found")
-    val root = parseSchema(stream)
-    println(root)
+    val jsonSchema = parseSchema(stream)
+    jsonSchema.properties
+    println(jsonSchema)
 }

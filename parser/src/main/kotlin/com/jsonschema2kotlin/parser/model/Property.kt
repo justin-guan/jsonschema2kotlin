@@ -2,48 +2,37 @@ package com.jsonschema2kotlin.parser.model
 
 import com.squareup.moshi.Json
 
-sealed class Property {
-    abstract val title: String?
-    abstract val description: String?
-
+sealed class Property : IProperty {
     data class StringProperty internal constructor(
-        override val title: String?,
-        override val description: String?
-    ) : Property()
+        private val property: IStringProperty
+    ) : Property(), IStringProperty by property
 
     data class NumberProperty internal constructor(
-        override val title: String?,
-        override val description: String?
-    ) : Property()
+        private val property: INumberProperty<Double>
+    ) : Property(), INumberProperty<Double> by property
 
     data class IntegerProperty internal constructor(
-        override val title: String?,
-        override val description: String?
-    ) : Property()
+        private val property: INumberProperty<Long>
+    ) : Property(), INumberProperty<Long> by property
 
     data class ObjectProperty internal constructor(
-        override val title: String?,
-        override val description: String?,
-        val properties: Properties
-    ) : Property()
+        private val property: IObjectProperty
+    ) : Property(), IObjectProperty by property
 
     data class ArrayProperty internal constructor(
-        override val title: String?,
-        override val description: String?
-    ) : Property()
+        private val property: IArrayProperty
+    ) : Property(), IArrayProperty by property
 
     data class BooleanProperty internal constructor(
-        override val title: String?,
-        override val description: String?
-    ) : Property()
+        private val property: IBooleanProperty
+    ) : Property(), IBooleanProperty by property
 
     data class NullProperty internal constructor(
-        override val title: String?,
-        override val description: String?
-    ) : Property()
+        private val property: INullProperty
+    ) : Property(), INullProperty by property
 }
 
-enum class Type {
+internal enum class Type {
     @Json(name = "string")
     STRING,
     @Json(name = "number")
@@ -58,36 +47,4 @@ enum class Type {
     BOOLEAN,
     @Json(name = "null")
     NULL
-}
-
-internal fun Type.buildProperty(title: String?, description: String?, subProperties: Properties?): Property = when (this) {
-    Type.STRING -> Property.StringProperty(
-        title = title,
-        description = description
-    )
-    Type.NUMBER -> Property.NumberProperty(
-        title = title,
-        description = description
-    )
-    Type.INTEGER -> Property.IntegerProperty(
-        title = title,
-        description = description
-    )
-    Type.OBJECT -> Property.ObjectProperty(
-        title = title,
-        description = description,
-        properties = subProperties ?: Properties()
-    )
-    Type.ARRAY -> Property.ArrayProperty(
-        title = title,
-        description = description
-    )
-    Type.BOOLEAN -> Property.BooleanProperty(
-        title = title,
-        description = description
-    )
-    Type.NULL -> Property.NullProperty(
-        title = title,
-        description = description
-    )
 }

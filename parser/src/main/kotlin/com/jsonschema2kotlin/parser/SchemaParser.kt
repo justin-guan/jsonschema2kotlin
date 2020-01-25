@@ -1,8 +1,8 @@
 package com.jsonschema2kotlin.parser
 
 import com.jsonschema2kotlin.parser.jsonadapter.PropertiesJsonAdapter
+import com.jsonschema2kotlin.parser.model.JsonSchema
 import com.jsonschema2kotlin.parser.model.Properties
-import com.jsonschema2kotlin.parser.model.Root
 import com.jsonschema2kotlin.parser.model.RootType
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -16,8 +16,8 @@ private val moshi = Moshi.Builder()
     .add(KotlinJsonAdapterFactory())
     .build()
 
-fun parseSchema(schema: InputStream): Root {
-    val adapter: JsonAdapter<Root> = moshi.adapter(Root::class.java)
+fun parseSchema(schema: InputStream): JsonSchema {
+    val adapter: JsonAdapter<JsonSchema> = moshi.adapter(JsonSchema::class.java)
     val json = schema.bufferedReader().use { it.readText() }
     return adapter.fromJson(json)!!
 }
