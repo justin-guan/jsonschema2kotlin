@@ -8,8 +8,6 @@
       <module name="jsonschema2kotlin.generator.test" target="1.7" />
       <module name="jsonschema2kotlin.jsonschema2kotlin.main" target="1.8" />
       <module name="jsonschema2kotlin.jsonschema2kotlin.test" target="1.8" />
-      <module name="jsonschema2kotlin.main" target="1.8" />
-      <module name="jsonschema2kotlin.test" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
