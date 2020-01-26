@@ -16,8 +16,12 @@ private val moshi = Moshi.Builder()
     .add(KotlinJsonAdapterFactory())
     .build()
 
-fun parseSchema(schema: InputStream): JsonSchema {
+fun InputStream.toJsonSchema(): JsonSchema {
     val adapter: JsonAdapter<JsonSchema> = moshi.adapter(JsonSchema::class.java)
-    val json = schema.bufferedReader().use { it.readText() }
+    val json = this.bufferedReader().use { it.readText() }
     return adapter.fromJson(json)!!
+}
+
+fun JsonSchema.toJsonString(): String {
+    return moshi.adapter(JsonSchema::class.java).toJson(this)
 }
