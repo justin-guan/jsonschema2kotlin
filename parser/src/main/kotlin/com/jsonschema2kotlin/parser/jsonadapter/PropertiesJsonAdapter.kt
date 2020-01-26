@@ -16,47 +16,47 @@ private typealias NoOp = Unit
 
 internal class PropertiesJsonAdapter : JsonAdapter<Properties>() {
     override fun fromJson(reader: JsonReader): Properties {
-        return readProperties(reader)
-    }
-
-    private fun readProperties(reader: JsonReader): Properties {
-        val propertyMap = mutableMapOf<String, Property>()
-        reader.readObject {
-            propertyMap[reader.nextName()] = readProperty(reader)
-        }
-        return Properties(propertyMap)
-    }
-
-    private fun readProperty(reader: JsonReader): Property {
-        var type: String? = null
-        val propertyHolder = PropertyHolder()
-        reader.readObject {
-            Do exhaustive when (reader.selectName(PropertyKeys.jsonReaderOptions()).ordinalToPropertyKey()) {
-                PropertyKeys.TYPE -> type = reader.nextString()
-                PropertyKeys.TITLE -> propertyHolder.title = reader.nextString()
-                PropertyKeys.DESCRIPTION -> propertyHolder.description = reader.nextString()
-                PropertyKeys.REQUIRED -> reader.readArray { propertyHolder.required.add(reader.nextString()) }
-                PropertyKeys.PROPERTIES -> propertyHolder.properties = readProperties(reader)
-                PropertyKeys.MINIMUM -> propertyHolder.minimum = reader.nextDouble()
-                PropertyKeys.MAXIMUM -> propertyHolder.maximum = reader.nextDouble()
-                PropertyKeys.EXCLUSIVE_MIN -> propertyHolder.exclusiveMinimum = reader.nextDouble()
-                PropertyKeys.EXCLUSIVE_MAX -> propertyHolder.exclusiveMaximum = reader.nextDouble()
-                PropertyKeys.MIN_LENGTH -> propertyHolder.minLength = reader.nextInt()
-                PropertyKeys.MAX_LENGTH -> propertyHolder.maxLength = reader.nextInt()
-                PropertyKeys.MIN_ITEMS -> propertyHolder.minItems = reader.nextInt()
-                PropertyKeys.MAX_ITEMS -> propertyHolder.maxItems = reader.nextInt()
-                PropertyKeys.MIN_PROPERTIES -> propertyHolder.minProperties = reader.nextInt()
-                PropertyKeys.MAX_PROPERTIES -> propertyHolder.maxProperties = reader.nextInt()
-                null -> reader.skipNameAndValue()
-            }
-        }
-        val typeEnum = enumJsonAdapter.fromJsonValue(type) ?: throw IllegalStateException("Unexpected null enum value")
-        return typeEnum.buildProperty(propertyHolder)
+        return reader.readProperties()
     }
 
     override fun toJson(writer: JsonWriter, value: Properties?) {
         value?.let { writer.writeProperties(it) }
     }
+}
+
+private fun JsonReader.readProperties(): Properties {
+    val propertyMap = mutableMapOf<String, Property>()
+    this.readObject {
+        propertyMap[this.nextName()] = readProperty()
+    }
+    return Properties(propertyMap)
+}
+
+private fun JsonReader.readProperty(): Property {
+    var type: String? = null
+    val propertyHolder = PropertyHolder()
+    this.readObject {
+        Do exhaustive when (this.selectName(PropertyKeys.jsonReaderOptions()).ordinalToPropertyKey()) {
+            PropertyKeys.TYPE -> type = this.nextString()
+            PropertyKeys.TITLE -> propertyHolder.title = this.nextString()
+            PropertyKeys.DESCRIPTION -> propertyHolder.description = this.nextString()
+            PropertyKeys.REQUIRED -> this.readArray { propertyHolder.required.add(this.nextString()) }
+            PropertyKeys.PROPERTIES -> propertyHolder.properties = readProperties()
+            PropertyKeys.MINIMUM -> propertyHolder.minimum = this.nextDouble()
+            PropertyKeys.MAXIMUM -> propertyHolder.maximum = this.nextDouble()
+            PropertyKeys.EXCLUSIVE_MIN -> propertyHolder.exclusiveMinimum = this.nextDouble()
+            PropertyKeys.EXCLUSIVE_MAX -> propertyHolder.exclusiveMaximum = this.nextDouble()
+            PropertyKeys.MIN_LENGTH -> propertyHolder.minLength = this.nextInt()
+            PropertyKeys.MAX_LENGTH -> propertyHolder.maxLength = this.nextInt()
+            PropertyKeys.MIN_ITEMS -> propertyHolder.minItems = this.nextInt()
+            PropertyKeys.MAX_ITEMS -> propertyHolder.maxItems = this.nextInt()
+            PropertyKeys.MIN_PROPERTIES -> propertyHolder.minProperties = this.nextInt()
+            PropertyKeys.MAX_PROPERTIES -> propertyHolder.maxProperties = this.nextInt()
+            null -> this.skipNameAndValue()
+        }
+    }
+    val typeEnum = enumJsonAdapter.fromJsonValue(type) ?: throw IllegalStateException("Unexpected null enum value")
+    return typeEnum.buildProperty(propertyHolder)
 }
 
 private fun JsonWriter.writeProperties(value: Properties) {
@@ -73,7 +73,7 @@ private fun JsonWriter.writeProperty(propertyName: String, property: Property) {
     name(propertyName)
     beginObject()
     writeBaseProperty(property)
-    Do exhaustive when(property) {
+    Do exhaustive when (property) {
         is Property.StringProperty -> this.writeProperty(property)
         is Property.NumberProperty -> this.writeProperty(property)
         is Property.IntegerProperty -> this.writeProperty(property)
@@ -167,4 +167,3 @@ private fun JsonWriter.writeKeyValue(key: PropertyKeys, value: List<String>) {
         endArray()
     }
 }
-
