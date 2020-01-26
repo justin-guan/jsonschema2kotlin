@@ -1,0 +1,71 @@
+{
+  "stringProperty": {
+    "type": "string",
+    "title": "stringProperty title",
+    "description": "stringProperty description",
+    "minLength": 0,
+    "maxLength": 100
+  },
+  "numberProperty1": {
+    "type": "number",
+    "title": "numberProperty1 title",
+    "description": "numberProperty1 description",
+    "minimum": 0,
+    "maximum": 100
+  },
+  "numberProperty2": {
+    "type": "number",
+    "title": "numberProperty2 title",
+    "description": "numberProperty2 description",
+    "exclusiveMinimum": 0,
+    "exclusiveMaximum": 100
+  },
+  "integerProperty1": {
+    "type": "integer",
+    "title": "integerProperty1 title",
+    "description": "integerProperty1 description",
+    "minimum": 0,
+    "maximum": 100
+  },
+  "integerProperty2": {
+    "type": "integer",
+    "title": "integerProperty2 title",
+    "description": "integerProperty2 description",
+    "exclusiveMinimum": 0,
+    "exclusiveMaximum": 100
+  },
+  "booleanProperty": {
+    "type": "boolean",
+    "title": "booleanProperty title",
+    "description": "booleanProperty description"
+  },
+  "nullProperty": {
+    "type": "null",
+    "title": "nullProperty title",
+    "description": "nullProperty description"
+  },
+  "arrayProperty": {
+    "type": "array",
+    "title": "arrayProperty title",
+    "description": "arrayProperty description",
+    "minItems": 0,
+    "maxItems": 100
+  },
+  "objectProperty": {
+    "type": "object",
+    "title": "objectProperty title",
+    "description": "objectProperty description",
+    "minProperties": 0,
+    "maxProperties": 100,
+    "properties": {
+      "subProperty": {
+        "type": "string",
+        "title": "subProperty title",
+        "description": "subProperty description"
+      }
+    },
+    "required": [
+      "subProperty"
+    ]
+  }
+}

@@ -12,7 +12,6 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.adapters.EnumJsonAdapter
 
 private val enumJsonAdapter = EnumJsonAdapter.create(Type::class.java)
-private typealias NoOp = Unit
 
 internal class PropertiesJsonAdapter : JsonAdapter<Properties>() {
     override fun fromJson(reader: JsonReader): Properties {
@@ -74,13 +73,13 @@ private fun JsonWriter.writeProperty(propertyName: String, property: Property) {
     beginObject()
     writeBaseProperty(property)
     Do exhaustive when (property) {
-        is Property.StringProperty -> this.writeProperty(property)
-        is Property.NumberProperty -> this.writeProperty(property)
-        is Property.IntegerProperty -> this.writeProperty(property)
-        is Property.ObjectProperty -> this.writeProperty(property)
-        is Property.ArrayProperty -> this.writeProperty(property)
-        is Property.BooleanProperty -> NoOp
-        is Property.NullProperty -> NoOp
+        is Property.StringProperty -> this.writeStringProperty(property)
+        is Property.NumberProperty -> this.writeNumberProperty(property)
+        is Property.IntegerProperty -> this.writeIntegerProperty(property)
+        is Property.ObjectProperty -> this.writeObjectProperty(property)
+        is Property.ArrayProperty -> this.writeArrayProperty(property)
+        is Property.BooleanProperty -> this.writeBooleanProperty()
+        is Property.NullProperty -> this.writeNullProperty()
     }
     endObject()
 }
@@ -89,13 +88,13 @@ private fun JsonWriter.writeType(type: Type) {
     writeKeyValue(PropertyKeys.TYPE, type.value)
 }
 
-private fun JsonWriter.writeProperty(property: Property.StringProperty) {
+private fun JsonWriter.writeStringProperty(property: Property.StringProperty) {
     writeType(Type.STRING)
     writeKeyValue(PropertyKeys.MIN_LENGTH, property.minLength)
     writeKeyValue(PropertyKeys.MAX_LENGTH, property.maxLength)
 }
 
-private fun JsonWriter.writeProperty(property: Property.NumberProperty) {
+private fun JsonWriter.writeNumberProperty(property: Property.NumberProperty) {
     writeType(Type.NUMBER)
     writeKeyValue(PropertyKeys.MINIMUM, property.minimum)
     writeKeyValue(PropertyKeys.MAXIMUM, property.maximum)
@@ -103,7 +102,7 @@ private fun JsonWriter.writeProperty(property: Property.NumberProperty) {
     writeKeyValue(PropertyKeys.EXCLUSIVE_MAX, property.exclusiveMaximum)
 }
 
-private fun JsonWriter.writeProperty(property: Property.IntegerProperty) {
+private fun JsonWriter.writeIntegerProperty(property: Property.IntegerProperty) {
     writeType(Type.INTEGER)
     writeKeyValue(PropertyKeys.MINIMUM, property.minimum)
     writeKeyValue(PropertyKeys.MAXIMUM, property.maximum)
@@ -111,7 +110,7 @@ private fun JsonWriter.writeProperty(property: Property.IntegerProperty) {
     writeKeyValue(PropertyKeys.EXCLUSIVE_MAX, property.exclusiveMaximum)
 }
 
-private fun JsonWriter.writeProperty(property: Property.ObjectProperty) {
+private fun JsonWriter.writeObjectProperty(property: Property.ObjectProperty) {
     writeType(Type.OBJECT)
     writeKeyValue(PropertyKeys.REQUIRED, property.required)
     writeKeyValue(PropertyKeys.MIN_PROPERTIES, property.minProperties)
@@ -120,10 +119,18 @@ private fun JsonWriter.writeProperty(property: Property.ObjectProperty) {
     writeProperties(property.properties)
 }
 
-private fun JsonWriter.writeProperty(property: Property.ArrayProperty) {
+private fun JsonWriter.writeArrayProperty(property: Property.ArrayProperty) {
     writeType(Type.ARRAY)
     writeKeyValue(PropertyKeys.MIN_ITEMS, property.minItems)
     writeKeyValue(PropertyKeys.MAX_ITEMS, property.maxItems)
+}
+
+private fun JsonWriter.writeBooleanProperty() {
+    writeType(Type.BOOLEAN)
+}
+
+private fun JsonWriter.writeNullProperty() {
+    writeType(Type.NULL)
 }
 
 private fun JsonWriter.writeBaseProperty(property: IProperty) {
