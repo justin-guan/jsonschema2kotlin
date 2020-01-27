@@ -16,7 +16,8 @@ internal data class PropertyHolder(
     override var minProperties: Int? = null,
     override var maxProperties: Int? = null,
     override var items: List<Property> = emptyList(),
-    override var uniqueItems: Boolean? = null
+    override var uniqueItems: Boolean? = null,
+    override var enums: EnumeratedType? = null
 ) : IObjectProperty, INumberProperty<Number>, IStringProperty, IArrayProperty, IBooleanProperty, INullProperty
 
 internal fun Type.buildProperty(propertyHolder: PropertyHolder): Property =
@@ -31,7 +32,7 @@ internal fun Type.buildProperty(propertyHolder: PropertyHolder): Property =
     }
 
 private fun PropertyHolder.toNumberINumberProperty(): INumberProperty<Double> =
-    object : IProperty by this, INumberProperty<Double> {
+    object : IProperty by this, Enum by this, INumberProperty<Double> {
         override val minimum: Double? = this@toNumberINumberProperty.minimum?.toDouble()
         override val maximum: Double? = this@toNumberINumberProperty.maximum?.toDouble()
         override val exclusiveMinimum: Double? = this@toNumberINumberProperty.exclusiveMinimum?.toDouble()
@@ -39,7 +40,7 @@ private fun PropertyHolder.toNumberINumberProperty(): INumberProperty<Double> =
     }
 
 private fun PropertyHolder.toIntegerINumberProperty(): INumberProperty<Long> =
-    object : IProperty by this, INumberProperty<Long> {
+    object : IProperty by this, Enum by this, INumberProperty<Long> {
         override val minimum: Long? = this@toIntegerINumberProperty.minimum?.toLong()
         override val maximum: Long? = this@toIntegerINumberProperty.maximum?.toLong()
         override val exclusiveMinimum: Long? = this@toIntegerINumberProperty.exclusiveMinimum?.toLong()

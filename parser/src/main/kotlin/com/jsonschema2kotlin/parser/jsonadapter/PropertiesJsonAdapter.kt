@@ -34,6 +34,7 @@ private fun JsonReader.readProperties(): Properties {
 
 private fun JsonReader.readProperty(): Property {
     var type: String? = null
+    var enums: Set<Any?>? = null
     val propertyHolder = PropertyHolder()
     this.readObject {
         Do exhaustive when (this.selectName(PropertyKeys.jsonReaderOptions()).ordinalToPropertyKey()) {
@@ -54,13 +55,29 @@ private fun JsonReader.readProperty(): Property {
             PropertyKeys.MAX_PROPERTIES -> propertyHolder.maxProperties = this.nextInt()
             PropertyKeys.ITEMS -> propertyHolder.items = this.readArrayItems()
             PropertyKeys.UNIQUE_ITEMS -> propertyHolder.uniqueItems = this.nextBoolean()
+            PropertyKeys.ENUM -> enums = this.readEnum()
             null -> this.skipNameAndValue()
         }
     }
-    val propertyType = requireNotNull(type) { "type must be specified for every property in schema" }
-    val typeEnum = enumJsonAdapter.fromJsonValue(propertyType)
-        ?: throw IllegalStateException("Unexpected null enum value")
+    val t = requireNotNull(type) { "type must be specified for every property in schema" }
+    val typeEnum = enumJsonAdapter.fromJsonValue(t) ?: throw IllegalStateException("Unexpected null enum value")
+    propertyHolder.enums = enums?.toEnumeratedType(typeEnum)
     return typeEnum.buildProperty(propertyHolder)
+}
+
+private fun JsonReader.readEnum(): Set<Any?> {
+    val enums = mutableSetOf<Any?>()
+    readArray {
+        val value = when (this.peek()) {
+            JsonReader.Token.STRING -> this.nextString()
+            JsonReader.Token.NUMBER -> this.nextDouble()
+            JsonReader.Token.BOOLEAN -> this.nextBoolean()
+            JsonReader.Token.NULL -> this.nextNull()
+            else -> throw JsonDataException("Malformed enum declaration in schema")
+        }
+        enums.add(value)
+    }
+    return enums
 }
 
 private fun JsonReader.readRequiredArray(): List<String> {

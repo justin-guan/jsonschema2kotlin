@@ -37,10 +37,9 @@
         }
       }
     },
-    "arrayProperty": {
-      "type": "array",
-      "items": [],
-      "uniqueItems": true
+    "property": {
+      "type": "integer",
+      "enum": [1, 2]
     }
   }
 }
