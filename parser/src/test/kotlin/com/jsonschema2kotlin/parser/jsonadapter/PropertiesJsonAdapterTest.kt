@@ -128,12 +128,7 @@ class PropertiesJsonAdapterTest {
             override val description: String? = "$key description"
         })
         toAndFromJson(key, stringProperty) {
-            assertPropertiesEqual(
-                it,
-                stringProperty,
-                Property.StringProperty::minLength,
-                Property.StringProperty::maxLength
-            )
+            assertStringPropertiesEqual(it, stringProperty)
         }
     }
 
@@ -149,14 +144,7 @@ class PropertiesJsonAdapterTest {
             override val exclusiveMaximum: Double? = 101.0
         })
         toAndFromJson(key, numberProperty) {
-            assertPropertiesEqual(
-                it,
-                numberProperty,
-                Property.NumberProperty::minimum,
-                Property.NumberProperty::maximum,
-                Property.NumberProperty::exclusiveMinimum,
-                Property.NumberProperty::exclusiveMaximum
-            )
+            assertNumberPropertiesEqual(it, numberProperty)
         }
     }
 
@@ -172,29 +160,53 @@ class PropertiesJsonAdapterTest {
             override val exclusiveMaximum: Long? = 101
         })
         toAndFromJson(key, integerProperty) {
+            assertIntegerPropertiesEqual(it, integerProperty)
+        }
+    }
+
+    @Test
+    fun `to and from non empty array property json`() {
+        val key = "key"
+        val subPropertyKey = "subPropertyKey"
+        val stringProperty = Property.StringProperty(object : IStringProperty {
+            override val title: String? = "$subPropertyKey title"
+            override val description: String? = "$subPropertyKey description"
+            override val minLength: Int? = 0
+            override val maxLength: Int? = 100
+        })
+        val arrayProperty = Property.ArrayProperty(object : IArrayProperty {
+            override val title: String? = "$key title"
+            override val description: String? = "$key description"
+            override val minItems: Int? = 0
+            override val maxItems: Int? = 100
+            override val items: List<Property> = listOf<Property>(stringProperty)
+            override val uniqueItems: Boolean? = true
+        })
+        toAndFromJson(key, arrayProperty) {
+            assertArrayPropertiesEqual(it, arrayProperty)
+            it.items shouldHaveSize 1
             assertPropertiesEqual(
-                it,
-                integerProperty,
-                Property.IntegerProperty::minimum,
-                Property.IntegerProperty::maximum,
-                Property.IntegerProperty::exclusiveMinimum,
-                Property.IntegerProperty::exclusiveMaximum
+                it.items[0] as Property.StringProperty,
+                stringProperty,
+                Property.StringProperty::maxLength
             )
         }
     }
 
     @Test
-    fun `to and from array property json`() {
+    fun `to and from empty array property json`() {
         val key = "key"
         val arrayProperty = Property.ArrayProperty(object : IArrayProperty {
             override val title: String? = "$key title"
             override val description: String? = "$key description"
             override val minItems: Int? = 0
             override val maxItems: Int? = 100
-
+            override val items: List<Property> = emptyList()
+            override val uniqueItems: Boolean? = true
         })
         toAndFromJson(key, arrayProperty) {
-            assertPropertiesEqual(it, arrayProperty, Property.ArrayProperty::minItems, Property.ArrayProperty::maxItems)
+            assertArrayPropertiesEqual(it, arrayProperty)
+            it.items shouldContainSame arrayProperty.items
         }
     }
 
@@ -210,13 +222,7 @@ class PropertiesJsonAdapterTest {
             override val maxProperties: Int? = 100
         })
         toAndFromJson(key, objectProperty) {
-            assertPropertiesEqual(
-                it,
-                objectProperty,
-                Property.ObjectProperty::minProperties,
-                Property.ObjectProperty::maxProperties
-            )
-            it.required shouldContainSame objectProperty.required
+            assertObjectPropertiesEqual(it, objectProperty)
             it.properties shouldContainSame objectProperty.properties
         }
     }
@@ -240,13 +246,7 @@ class PropertiesJsonAdapterTest {
             override val maxProperties: Int? = 100
         })
         toAndFromJson(key, objectProperty) {
-            assertPropertiesEqual(
-                it,
-                objectProperty,
-                Property.ObjectProperty::minProperties,
-                Property.ObjectProperty::maxProperties
-            )
-            it.required shouldContainSame objectProperty.required
+            assertObjectPropertiesEqual(it, objectProperty)
             it.properties.assertProperty<Property.StringProperty>(subPropertyKey) { subProperty ->
                 assertPropertiesEqual(
                     subProperty,
@@ -294,6 +294,56 @@ class PropertiesJsonAdapterTest {
         property.forEach {
             it.invoke(first) shouldBeEqualTo it.invoke(second)
         }
+    }
+
+    private fun assertStringPropertiesEqual(first: Property.StringProperty, second: Property.StringProperty) {
+        assertPropertiesEqual(
+            first,
+            second,
+            Property.StringProperty::title,
+            Property.StringProperty::description,
+            Property.StringProperty::minLength,
+            Property.StringProperty::maxLength
+        )
+    }
+
+    private fun <T : INumberProperty<*>> assertINumberPropertiesEqual(first: T, second: T) {
+        assertPropertiesEqual(
+            first,
+            second,
+            INumberProperty<*>::minimum,
+            INumberProperty<*>::maximum,
+            INumberProperty<*>::exclusiveMinimum,
+            INumberProperty<*>::exclusiveMaximum
+        )
+    }
+
+    private fun assertIntegerPropertiesEqual(first: Property.IntegerProperty, second: Property.IntegerProperty) {
+        assertINumberPropertiesEqual(first, second)
+    }
+
+    private fun assertNumberPropertiesEqual(first: Property.NumberProperty, second: Property.NumberProperty) {
+        assertINumberPropertiesEqual(first, second)
+    }
+
+    private fun assertObjectPropertiesEqual(first: Property.ObjectProperty, second: Property.ObjectProperty) {
+        assertPropertiesEqual(
+            first,
+            second,
+            Property.ObjectProperty::minProperties,
+            Property.ObjectProperty::maxProperties
+        )
+        first.required shouldContainSame second.required
+    }
+
+    private fun assertArrayPropertiesEqual(first: Property.ArrayProperty, second: Property.ArrayProperty) {
+        assertPropertiesEqual(
+            first,
+            second,
+            Property.ArrayProperty::minItems,
+            Property.ArrayProperty::maxItems,
+            Property.ArrayProperty::uniqueItems
+        )
     }
 
     private inline fun <reified T : Property> Properties.assertProperty(key: String, assertions: (T) -> Unit = {}) {

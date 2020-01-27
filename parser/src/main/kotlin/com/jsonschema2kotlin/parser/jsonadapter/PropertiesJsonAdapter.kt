@@ -53,6 +53,7 @@ private fun JsonReader.readProperty(): Property {
             PropertyKeys.MIN_PROPERTIES -> propertyHolder.minProperties = this.nextInt()
             PropertyKeys.MAX_PROPERTIES -> propertyHolder.maxProperties = this.nextInt()
             PropertyKeys.ITEMS -> propertyHolder.items = this.readArrayItems()
+            PropertyKeys.UNIQUE_ITEMS -> propertyHolder.uniqueItems = this.nextBoolean()
             null -> this.skipNameAndValue()
         }
     }
@@ -83,14 +84,18 @@ private fun JsonWriter.writeProperties(value: Properties) {
     beginObject()
     value.let {
         it.forEach { propName, propValue ->
-            writeProperty(propName, propValue)
+            writeKeyAndProperty(propName, propValue)
         }
     }
     endObject()
 }
 
-private fun JsonWriter.writeProperty(propertyName: String, property: Property) {
+private fun JsonWriter.writeKeyAndProperty(propertyName: String, property: Property) {
     name(propertyName)
+    writeProperty(property)
+}
+
+private fun JsonWriter.writeProperty(property: Property) {
     beginObject()
     writeBaseProperty(property)
     Do exhaustive when (property) {
@@ -136,7 +141,7 @@ private fun JsonWriter.writeObjectProperty(property: Property.ObjectProperty) {
     writeKeyValue(PropertyKeys.REQUIRED, property.required)
     writeKeyValue(PropertyKeys.MIN_PROPERTIES, property.minProperties)
     writeKeyValue(PropertyKeys.MAX_PROPERTIES, property.maxProperties)
-    name("properties")
+    name(PropertyKeys.PROPERTIES.value)
     writeProperties(property.properties)
 }
 
@@ -144,6 +149,17 @@ private fun JsonWriter.writeArrayProperty(property: Property.ArrayProperty) {
     writeType(Type.ARRAY)
     writeKeyValue(PropertyKeys.MIN_ITEMS, property.minItems)
     writeKeyValue(PropertyKeys.MAX_ITEMS, property.maxItems)
+    writeKeyValue(PropertyKeys.UNIQUE_ITEMS, property.uniqueItems)
+    writePropertyArray(PropertyKeys.ITEMS, property.items)
+}
+
+private fun JsonWriter.writePropertyArray(key: PropertyKeys, properties: List<Property>) {
+    if (properties.isNotEmpty()) {
+        name(key.value)
+        beginArray()
+        properties.forEach { writeProperty(it) }
+        endArray()
+    }
 }
 
 private fun JsonWriter.writeBooleanProperty() {
@@ -181,6 +197,13 @@ private fun JsonWriter.writeKeyValue(key: PropertyKeys, value: Double?) {
 }
 
 private fun JsonWriter.writeKeyValue(key: PropertyKeys, value: Long?) {
+    value?.run {
+        name(key.value)
+        value(value)
+    }
+}
+
+private fun JsonWriter.writeKeyValue(key: PropertyKeys, value: Boolean?) {
     value?.run {
         name(key.value)
         value(value)

@@ -15,7 +15,8 @@ internal data class PropertyHolder(
     override var maxItems: Int? = null,
     override var minProperties: Int? = null,
     override var maxProperties: Int? = null,
-    override var items: List<Property> = emptyList()
+    override var items: List<Property> = emptyList(),
+    override var uniqueItems: Boolean? = null
 ) : IObjectProperty, INumberProperty<Number>, IStringProperty, IArrayProperty, IBooleanProperty, INullProperty
 
 internal fun Type.buildProperty(propertyHolder: PropertyHolder): Property =

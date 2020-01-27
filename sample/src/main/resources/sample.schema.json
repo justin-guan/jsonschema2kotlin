@@ -39,11 +39,8 @@
     },
     "arrayProperty": {
       "type": "array",
-      "items": [{
-        "type": "string"
-      }, {
-        "type": "boolean"
-      }]
+      "items": [],
+      "uniqueItems": true
     }
   }
 }

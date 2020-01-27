@@ -28,6 +28,7 @@ internal interface IArrayProperty : IProperty {
     val minItems: Int?
     val maxItems: Int?
     val items: List<Property>
+    val uniqueItems: Boolean?
 }
 
 internal interface IBooleanProperty : IProperty
