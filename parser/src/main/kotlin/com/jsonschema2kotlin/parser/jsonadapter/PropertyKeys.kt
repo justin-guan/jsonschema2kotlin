@@ -17,7 +17,8 @@ internal enum class PropertyKeys(val value: String) {
     MIN_ITEMS("minItems"),
     MAX_ITEMS("maxItems"),
     MIN_PROPERTIES("minProperties"),
-    MAX_PROPERTIES("maxProperties");
+    MAX_PROPERTIES("maxProperties"),
+    ITEMS("items");
 
     companion object {
         fun jsonReaderOptions(): JsonReader.Options =

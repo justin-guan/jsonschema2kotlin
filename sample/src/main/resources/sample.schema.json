@@ -36,6 +36,14 @@
           "type": "string"
         }
       }
+    },
+    "arrayProperty": {
+      "type": "array",
+      "items": [{
+        "type": "string"
+      }, {
+        "type": "boolean"
+      }]
     }
   }
 }

@@ -3,7 +3,7 @@ package com.jsonschema2kotlin.parser.model
 internal data class PropertyHolder(
     override var title: String? = null,
     override var description: String? = null,
-    override var required: MutableList<String> = mutableListOf(),
+    override var required: List<String> = emptyList(),
     override var properties: Properties = Properties(emptyMap()),
     override var minimum: Number? = null,
     override var maximum: Number? = null,
@@ -14,7 +14,8 @@ internal data class PropertyHolder(
     override var minItems: Int? = null,
     override var maxItems: Int? = null,
     override var minProperties: Int? = null,
-    override var maxProperties: Int? = null
+    override var maxProperties: Int? = null,
+    override var items: List<Property> = emptyList()
 ) : IObjectProperty, INumberProperty<Number>, IStringProperty, IArrayProperty, IBooleanProperty, INullProperty
 
 internal fun Type.buildProperty(propertyHolder: PropertyHolder): Property =

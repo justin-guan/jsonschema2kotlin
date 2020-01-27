@@ -27,6 +27,7 @@ internal interface IStringProperty : IProperty {
 internal interface IArrayProperty : IProperty {
     val minItems: Int?
     val maxItems: Int?
+    val items: List<Property>
 }
 
 internal interface IBooleanProperty : IProperty

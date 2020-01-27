@@ -7,6 +7,7 @@ import com.jsonschema2kotlin.parser.readObject
 import com.jsonschema2kotlin.parser.skipNameAndValue
 import com.jsonschema2kotlin.parser.utils.Do
 import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.adapters.EnumJsonAdapter
@@ -39,7 +40,7 @@ private fun JsonReader.readProperty(): Property {
             PropertyKeys.TYPE -> type = this.nextString()
             PropertyKeys.TITLE -> propertyHolder.title = this.nextString()
             PropertyKeys.DESCRIPTION -> propertyHolder.description = this.nextString()
-            PropertyKeys.REQUIRED -> this.readArray { propertyHolder.required.add(this.nextString()) }
+            PropertyKeys.REQUIRED -> propertyHolder.required = this.readRequiredArray()
             PropertyKeys.PROPERTIES -> propertyHolder.properties = readProperties()
             PropertyKeys.MINIMUM -> propertyHolder.minimum = this.nextDouble()
             PropertyKeys.MAXIMUM -> propertyHolder.maximum = this.nextDouble()
@@ -51,11 +52,31 @@ private fun JsonReader.readProperty(): Property {
             PropertyKeys.MAX_ITEMS -> propertyHolder.maxItems = this.nextInt()
             PropertyKeys.MIN_PROPERTIES -> propertyHolder.minProperties = this.nextInt()
             PropertyKeys.MAX_PROPERTIES -> propertyHolder.maxProperties = this.nextInt()
+            PropertyKeys.ITEMS -> propertyHolder.items = this.readArrayItems()
             null -> this.skipNameAndValue()
         }
     }
-    val typeEnum = enumJsonAdapter.fromJsonValue(type) ?: throw IllegalStateException("Unexpected null enum value")
+    val propertyType = requireNotNull(type) { "type must be specified for every property in schema" }
+    val typeEnum = enumJsonAdapter.fromJsonValue(propertyType)
+        ?: throw IllegalStateException("Unexpected null enum value")
     return typeEnum.buildProperty(propertyHolder)
+}
+
+private fun JsonReader.readRequiredArray(): List<String> {
+    val requiredList = mutableListOf<String>()
+    this.readArray { requiredList.add(this.nextString()) }
+    return requiredList
+}
+
+private fun JsonReader.readArrayItems(): List<Property> {
+    val nextToken = this.peek()
+    val itemList = mutableListOf<Property>()
+    when (nextToken) {
+        JsonReader.Token.BEGIN_OBJECT -> itemList.add(this.readProperty())
+        JsonReader.Token.BEGIN_ARRAY -> this.readArray { itemList.add(this.readProperty()) }
+        else -> throw JsonDataException("Array item should be defined as a property or array of properties")
+    }
+    return itemList
 }
 
 private fun JsonWriter.writeProperties(value: Properties) {
