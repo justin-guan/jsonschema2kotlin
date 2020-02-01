@@ -34,7 +34,6 @@ private fun JsonReader.readProperties(): Properties {
 
 private fun JsonReader.readProperty(): Property {
     var type: String? = null
-    var enums: Set<Any?>? = null
     val propertyHolder = PropertyHolder()
     this.readObject {
         Do exhaustive when (this.selectName(PropertyKeys.jsonReaderOptions()).ordinalToPropertyKey()) {
@@ -55,13 +54,12 @@ private fun JsonReader.readProperty(): Property {
             PropertyKeys.MAX_PROPERTIES -> propertyHolder.maxProperties = this.nextInt()
             PropertyKeys.ITEMS -> propertyHolder.items = this.readArrayItems()
             PropertyKeys.UNIQUE_ITEMS -> propertyHolder.uniqueItems = this.nextBoolean()
-            PropertyKeys.ENUM -> enums = this.readEnum()
+            PropertyKeys.ENUM -> propertyHolder.enums = this.readEnum()
             null -> this.skipNameAndValue()
         }
     }
     val t = requireNotNull(type) { "type must be specified for every property in schema" }
     val typeEnum = enumJsonAdapter.fromJsonValue(t) ?: throw IllegalStateException("Unexpected null enum value")
-    propertyHolder.enums = enums?.toEnumeratedType(typeEnum)
     return typeEnum.buildProperty(propertyHolder)
 }
 
@@ -73,6 +71,8 @@ private fun JsonReader.readEnum(): Set<Any?> {
             JsonReader.Token.NUMBER -> this.nextDouble()
             JsonReader.Token.BOOLEAN -> this.nextBoolean()
             JsonReader.Token.NULL -> this.nextNull()
+            JsonReader.Token.BEGIN_OBJECT -> throw UnsupportedOperationException("Object enums not supported")
+            JsonReader.Token.BEGIN_ARRAY -> throw UnsupportedOperationException("Array enums not supported")
             else -> throw JsonDataException("Malformed enum declaration in schema")
         }
         enums.add(value)
@@ -121,7 +121,7 @@ private fun JsonWriter.writeProperty(property: Property) {
         is Property.IntegerProperty -> this.writeIntegerProperty(property)
         is Property.ObjectProperty -> this.writeObjectProperty(property)
         is Property.ArrayProperty -> this.writeArrayProperty(property)
-        is Property.BooleanProperty -> this.writeBooleanProperty()
+        is Property.BooleanProperty -> this.writeBooleanProperty(property)
         is Property.NullProperty -> this.writeNullProperty()
     }
     endObject()
@@ -135,6 +135,7 @@ private fun JsonWriter.writeStringProperty(property: Property.StringProperty) {
     writeType(Type.STRING)
     writeKeyValue(PropertyKeys.MIN_LENGTH, property.minLength)
     writeKeyValue(PropertyKeys.MAX_LENGTH, property.maxLength)
+    writeKeyValueCollection(PropertyKeys.ENUM, property.enums) { value(it) }
 }
 
 private fun JsonWriter.writeNumberProperty(property: Property.NumberProperty) {
@@ -143,6 +144,7 @@ private fun JsonWriter.writeNumberProperty(property: Property.NumberProperty) {
     writeKeyValue(PropertyKeys.MAXIMUM, property.maximum)
     writeKeyValue(PropertyKeys.EXCLUSIVE_MIN, property.exclusiveMinimum)
     writeKeyValue(PropertyKeys.EXCLUSIVE_MAX, property.exclusiveMaximum)
+    writeKeyValueCollection(PropertyKeys.ENUM, property.enums) { value(it) }
 }
 
 private fun JsonWriter.writeIntegerProperty(property: Property.IntegerProperty) {
@@ -151,11 +153,12 @@ private fun JsonWriter.writeIntegerProperty(property: Property.IntegerProperty) 
     writeKeyValue(PropertyKeys.MAXIMUM, property.maximum)
     writeKeyValue(PropertyKeys.EXCLUSIVE_MIN, property.exclusiveMinimum)
     writeKeyValue(PropertyKeys.EXCLUSIVE_MAX, property.exclusiveMaximum)
+    writeKeyValueCollection(PropertyKeys.ENUM, property.enums) { value(it) }
 }
 
 private fun JsonWriter.writeObjectProperty(property: Property.ObjectProperty) {
     writeType(Type.OBJECT)
-    writeKeyValue(PropertyKeys.REQUIRED, property.required)
+    writeKeyValueCollection(PropertyKeys.REQUIRED, property.required) { value(it) }
     writeKeyValue(PropertyKeys.MIN_PROPERTIES, property.minProperties)
     writeKeyValue(PropertyKeys.MAX_PROPERTIES, property.maxProperties)
     name(PropertyKeys.PROPERTIES.value)
@@ -179,8 +182,9 @@ private fun JsonWriter.writePropertyArray(key: PropertyKeys, properties: List<Pr
     }
 }
 
-private fun JsonWriter.writeBooleanProperty() {
+private fun JsonWriter.writeBooleanProperty(property: Property.BooleanProperty) {
     writeType(Type.BOOLEAN)
+    writeKeyValueCollection(PropertyKeys.ENUM, property.enums) { value(it) }
 }
 
 private fun JsonWriter.writeNullProperty() {
@@ -227,11 +231,15 @@ private fun JsonWriter.writeKeyValue(key: PropertyKeys, value: Boolean?) {
     }
 }
 
-private fun JsonWriter.writeKeyValue(key: PropertyKeys, value: List<String>) {
+private inline fun <T> JsonWriter.writeKeyValueCollection(
+    key: PropertyKeys,
+    value: Collection<T>,
+    valueWriter: (T) -> Unit
+) {
     if (value.isNotEmpty()) {
         name(key.value)
         beginArray()
-        value.forEach { value(it) }
+        value.forEach(valueWriter)
         endArray()
     }
 }

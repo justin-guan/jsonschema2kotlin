@@ -17,22 +17,34 @@ internal data class PropertyHolder(
     override var maxProperties: Int? = null,
     override var items: List<Property> = emptyList(),
     override var uniqueItems: Boolean? = null,
-    override var enums: EnumeratedType? = null
-) : IObjectProperty, INumberProperty<Number>, IStringProperty, IArrayProperty, IBooleanProperty, INullProperty
+    override var enums: Set<Any?> = emptySet()
+) : IObjectProperty,
+    INumberProperty<Number>,
+    IStringProperty,
+    IArrayProperty,
+    IBooleanProperty,
+    INullProperty,
+    Enumerated<Any>
 
 internal fun Type.buildProperty(propertyHolder: PropertyHolder): Property =
     when (this) {
-        Type.STRING -> Property.StringProperty(propertyHolder)
-        Type.NUMBER -> Property.NumberProperty(propertyHolder.toNumberINumberProperty())
-        Type.INTEGER -> Property.IntegerProperty(propertyHolder.toIntegerINumberProperty())
+        Type.STRING -> Property.StringProperty(propertyHolder, propertyHolder.enums.toStringSet())
+        Type.NUMBER -> Property.NumberProperty(
+            propertyHolder.toNumberINumberProperty(),
+            propertyHolder.enums.toNumberSet()
+        )
+        Type.INTEGER -> Property.IntegerProperty(
+            propertyHolder.toIntegerINumberProperty(),
+            propertyHolder.enums.toIntegerSet()
+        )
         Type.OBJECT -> Property.ObjectProperty(propertyHolder)
         Type.ARRAY -> Property.ArrayProperty(propertyHolder)
-        Type.BOOLEAN -> Property.BooleanProperty(propertyHolder)
+        Type.BOOLEAN -> Property.BooleanProperty(propertyHolder, propertyHolder.enums.toBooleanSet())
         Type.NULL -> Property.NullProperty(propertyHolder)
     }
 
 private fun PropertyHolder.toNumberINumberProperty(): INumberProperty<Double> =
-    object : IProperty by this, Enum by this, INumberProperty<Double> {
+    object : IProperty by this, INumberProperty<Double> {
         override val minimum: Double? = this@toNumberINumberProperty.minimum?.toDouble()
         override val maximum: Double? = this@toNumberINumberProperty.maximum?.toDouble()
         override val exclusiveMinimum: Double? = this@toNumberINumberProperty.exclusiveMinimum?.toDouble()
@@ -40,7 +52,7 @@ private fun PropertyHolder.toNumberINumberProperty(): INumberProperty<Double> =
     }
 
 private fun PropertyHolder.toIntegerINumberProperty(): INumberProperty<Long> =
-    object : IProperty by this, Enum by this, INumberProperty<Long> {
+    object : IProperty by this, INumberProperty<Long> {
         override val minimum: Long? = this@toIntegerINumberProperty.minimum?.toLong()
         override val maximum: Long? = this@toIntegerINumberProperty.maximum?.toLong()
         override val exclusiveMinimum: Long? = this@toIntegerINumberProperty.exclusiveMinimum?.toLong()

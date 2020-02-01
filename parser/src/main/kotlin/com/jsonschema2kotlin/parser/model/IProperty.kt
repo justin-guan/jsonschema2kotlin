@@ -12,14 +12,14 @@ internal interface IObjectProperty : IProperty {
     val maxProperties: Int?
 }
 
-internal interface INumberProperty<T : Number> : IProperty, Enum {
+internal interface INumberProperty<T : Number> : IProperty {
     val minimum: T?
     val maximum: T?
     val exclusiveMinimum: T?
     val exclusiveMaximum: T?
 }
 
-internal interface IStringProperty : IProperty, Enum {
+internal interface IStringProperty : IProperty {
     val minLength: Int?
     val maxLength: Int?
 }
@@ -31,6 +31,6 @@ internal interface IArrayProperty : IProperty {
     val uniqueItems: Boolean?
 }
 
-internal interface IBooleanProperty : IProperty, Enum
+internal interface IBooleanProperty : IProperty
 
 internal interface INullProperty : IProperty

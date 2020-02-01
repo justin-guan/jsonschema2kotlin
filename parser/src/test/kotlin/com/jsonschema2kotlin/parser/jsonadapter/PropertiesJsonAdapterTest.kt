@@ -126,7 +126,7 @@ class PropertiesJsonAdapterTest {
             override val maxLength: Int? = 0
             override val title: String? = "$key title"
             override val description: String? = "$key description"
-        })
+        }, emptySet())
         toAndFromJson(key, stringProperty) {
             assertStringPropertiesEqual(it, stringProperty)
         }
@@ -142,7 +142,7 @@ class PropertiesJsonAdapterTest {
             override val maximum: Double? = 100.0
             override val exclusiveMinimum: Double? = -1.0
             override val exclusiveMaximum: Double? = 101.0
-        })
+        }, emptySet())
         toAndFromJson(key, numberProperty) {
             assertNumberPropertiesEqual(it, numberProperty)
         }
@@ -158,7 +158,7 @@ class PropertiesJsonAdapterTest {
             override val maximum: Long? = 100
             override val exclusiveMinimum: Long? = -1
             override val exclusiveMaximum: Long? = 101
-        })
+        }, emptySet())
         toAndFromJson(key, integerProperty) {
             assertIntegerPropertiesEqual(it, integerProperty)
         }
@@ -173,7 +173,7 @@ class PropertiesJsonAdapterTest {
             override val description: String? = "$subPropertyKey description"
             override val minLength: Int? = 0
             override val maxLength: Int? = 100
-        })
+        }, emptySet())
         val arrayProperty = Property.ArrayProperty(object : IArrayProperty {
             override val title: String? = "$key title"
             override val description: String? = "$key description"
@@ -236,7 +236,7 @@ class PropertiesJsonAdapterTest {
             override val description: String? = "$subPropertyKey description"
             override val minLength: Int? = 0
             override val maxLength: Int? = 100
-        })
+        }, emptySet())
         val objectProperty = Property.ObjectProperty(object : IObjectProperty {
             override val title: String? = "$key title"
             override val description: String? = "$key description"
@@ -264,7 +264,7 @@ class PropertiesJsonAdapterTest {
         val booleanProperty = Property.BooleanProperty(object : IBooleanProperty {
             override val title: String? = "$key title"
             override val description: String? = "$key description"
-        })
+        }, emptySet())
         toAndFromJson(key, booleanProperty)
     }
 

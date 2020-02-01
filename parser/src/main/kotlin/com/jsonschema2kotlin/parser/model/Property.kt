@@ -4,16 +4,19 @@ import com.squareup.moshi.Json
 
 sealed class Property : IProperty {
     data class StringProperty internal constructor(
-        private val property: IStringProperty
-    ) : Property(), IStringProperty by property
+        private val property: IStringProperty,
+        override val enums: Set<String?>
+    ) : Property(), IStringProperty by property, Enumerated<String>
 
     data class NumberProperty internal constructor(
-        private val property: INumberProperty<Double>
-    ) : Property(), INumberProperty<Double> by property
+        private val property: INumberProperty<Double>,
+        override val enums: Set<Double?>
+    ) : Property(), INumberProperty<Double> by property, Enumerated<Double>
 
     data class IntegerProperty internal constructor(
-        private val property: INumberProperty<Long>
-    ) : Property(), INumberProperty<Long> by property
+        private val property: INumberProperty<Long>,
+        override val enums: Set<Long?>
+    ) : Property(), INumberProperty<Long> by property, Enumerated<Long>
 
     data class ObjectProperty internal constructor(
         private val property: IObjectProperty
@@ -24,8 +27,9 @@ sealed class Property : IProperty {
     ) : Property(), IArrayProperty by property
 
     data class BooleanProperty internal constructor(
-        private val property: IBooleanProperty
-    ) : Property(), IBooleanProperty by property
+        private val property: IBooleanProperty,
+        override val enums: Set<Boolean?>
+    ) : Property(), IBooleanProperty by property, Enumerated<Boolean>
 
     data class NullProperty internal constructor(
         private val property: INullProperty
