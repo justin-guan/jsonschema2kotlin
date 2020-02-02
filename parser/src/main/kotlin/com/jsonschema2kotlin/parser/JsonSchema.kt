@@ -10,13 +10,13 @@ data class JsonSchema(
     @Json(name = "\$schema")
     val schema: String,
     private val type: RootType,
+    val definitions: Map<String, Definition>?,
     override val title: String?,
     override val description: String?,
     override val required: List<String>,
     override val properties: Map<String, Property<*>>,
     override val minProperties: Int?,
-    override val maxProperties: Int?,
-    override val enum: Set<Map<String, Any?>?>?
+    override val maxProperties: Int?
 ) : IObjectProperty
 
 /**
@@ -27,20 +27,25 @@ enum class RootType {
     OBJECT
 }
 
-sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty<T> {
+sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty, Reference {
+
     data class NullProperty(
         override val title: String?,
         override val description: String?,
-        override val enum: Set<Nothing?>?
-    ) : Property<Nothing>(Type.NULL), INullProperty
+        override val enum: Set<Nothing?>?,
+        @Json(name = "\$ref")
+        override val ref: String?
+    ) : Property<Nothing>(Type.NULL), INullProperty, Enumerated<Nothing>
 
     data class StringProperty(
         override val description: String?,
         override val title: String?,
         override val minLength: Int?,
         override val maxLength: Int?,
-        override val enum: Set<String?>?
-    ) : Property<String>(Type.STRING), IStringProperty
+        override val enum: Set<String?>?,
+        @Json(name = "\$ref")
+        override val ref: String?
+    ) : Property<String>(Type.STRING), IStringProperty, Enumerated<String>
 
     data class NumberProperty(
         override val description: String?,
@@ -49,8 +54,10 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty<T> {
         override val maximum: Double?,
         override val exclusiveMinimum: Double?,
         override val exclusiveMaximum: Double?,
-        override val enum: Set<Double?>?
-    ) : Property<Double>(Type.NUMBER), INumberProperty<Double>
+        override val enum: Set<Double?>?,
+        @Json(name = "\$ref")
+        override val ref: String?
+    ) : Property<Double>(Type.NUMBER), INumberProperty<Double>, Enumerated<Double>
 
     data class IntegerProperty(
         override val description: String?,
@@ -59,14 +66,18 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty<T> {
         override val maximum: Long?,
         override val exclusiveMinimum: Long?,
         override val exclusiveMaximum: Long?,
-        override val enum: Set<Long?>?
-    ) : Property<Long>(Type.INTEGER), INumberProperty<Long>
+        override val enum: Set<Long?>?,
+        @Json(name = "\$ref")
+        override val ref: String?
+    ) : Property<Long>(Type.INTEGER), INumberProperty<Long>, Enumerated<Long>
 
     data class BooleanProperty(
         override val description: String?,
         override val title: String?,
-        override val enum: Set<Boolean?>?
-    ) : Property<Boolean>(Type.BOOLEAN), IBooleanProperty
+        override val enum: Set<Boolean?>?,
+        @Json(name = "\$ref")
+        override val ref: String?
+    ) : Property<Boolean>(Type.BOOLEAN), IBooleanProperty, Enumerated<Boolean>
 
     data class ArrayProperty(
         override val description: String?,
@@ -75,8 +86,10 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty<T> {
         override val maxItems: Int?,
         override val items: List<Property<*>>?,
         override val uniqueItems: Boolean?,
-        override val enum: Set<List<Any?>?>?
-    ) : Property<List<Any?>>(Type.ARRAY), IArrayProperty
+        override val enum: Set<List<Any?>?>?,
+        @Json(name = "\$ref")
+        override val ref: String?
+    ) : Property<List<Any?>>(Type.ARRAY), IArrayProperty, Enumerated<List<Any?>>
 
     data class ObjectProperty(
         override val description: String?,
@@ -85,17 +98,18 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty<T> {
         override val properties: Map<String, Property<*>>?,
         override val minProperties: Int?,
         override val maxProperties: Int?,
-        override val enum: Set<Map<String, Any?>?>?
-    ) : Property<Map<String, Any?>>(Type.OBJECT), IObjectProperty
+        override val enum: Set<Map<String, Any?>?>?,
+        @Json(name = "\$ref")
+        override val ref: String?
+    ) : Property<Map<String, Any?>>(Type.OBJECT), IObjectProperty, Enumerated<Map<String, Any?>>
 }
 
-enum class Type(val value: String) {
-    NULL("null"),
-    STRING("string"),
-    NUMBER("number"),
-    INTEGER("integer"),
-    BOOLEAN("boolean"),
-    ARRAY("array"),
-    OBJECT("object")
+enum class Type(val value: String?) {
+    @Json(name = "null") NULL("null"),
+    @Json(name = "string") STRING("string"),
+    @Json(name = "number") NUMBER("number"),
+    @Json(name = "integer") INTEGER("integer"),
+    @Json(name = "boolean") BOOLEAN("boolean"),
+    @Json(name = "array") ARRAY("array"),
+    @Json(name = "object") OBJECT("object")
 }
-
