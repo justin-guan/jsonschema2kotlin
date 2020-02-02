@@ -6,6 +6,11 @@
   "required": [
     "test"
   ],
+  "definitions": {
+    "positive": {
+      "minimum": 0
+    }
+  },
   "properties": {
     "firstName": {
       "type": "string",
@@ -39,7 +44,7 @@
     },
     "property": {
       "type": "integer",
-      "enum": [1, 2]
+      "$ref": "#/definitions/positive"
     }
   }
 }

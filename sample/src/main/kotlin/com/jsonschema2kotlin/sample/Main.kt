@@ -1,15 +1,16 @@
 package com.jsonschema2kotlin.sample
 
 import com.jsonschema2kotlin.parser.toJsonSchema
-import com.jsonschema2kotlin.parser.toJsonString
+import java.io.File
 import java.io.FileNotFoundException
 
 class Main
 
 fun main() {
-    val stream = Main::class.java.classLoader.getResourceAsStream("sample.schema.json")
+    val resourceUrl = Main::class.java.classLoader.getResource("sample.schema.json")
         ?: throw FileNotFoundException("Schema not found")
-    val jsonSchema = stream.toJsonSchema()
+    val file = File(resourceUrl.toURI())
+    val jsonSchema = file.toJsonSchema()
     println(jsonSchema)
-    println(jsonSchema.toJsonString())
+//    println(jsonSchema.toJsonString())
 }

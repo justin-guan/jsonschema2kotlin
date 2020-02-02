@@ -8,6 +8,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.EnumJsonAdapter
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import java.io.File
 import java.io.InputStream
 
 private val moshi = Moshi.Builder()
@@ -29,6 +30,20 @@ fun InputStream.toJsonSchema(): JsonSchema {
     val adapter: JsonAdapter<JsonSchema> = moshi.adapter(JsonSchema::class.java)
     val json = this.bufferedReader().use { it.readText() }
     return adapter.fromJson(json)!!
+}
+
+fun File.toJsonSchema(): Map<String, JsonSchema> {
+    val schemas = mutableMapOf<String, JsonSchema>()
+    if (this.isDirectory) {
+        walk().forEach {
+            val jsonSchema = it.inputStream().toJsonSchema()
+            schemas[jsonSchema.id] = jsonSchema
+        }
+    } else {
+        val jsonSchema = this.inputStream().toJsonSchema()
+        schemas[jsonSchema.id] = jsonSchema
+    }
+    return schemas
 }
 
 fun JsonSchema.toJsonString(): String {

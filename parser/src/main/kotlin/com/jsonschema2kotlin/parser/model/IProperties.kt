@@ -24,13 +24,13 @@ internal interface INumberProperty<T : Number> : IProperty {
 internal interface IArrayProperty : IProperty {
     val minItems: Int?
     val maxItems: Int?
-    val items: List<Property<*>>?
+    val items: List<Property>?
     val uniqueItems: Boolean?
 }
 
 internal interface IObjectProperty : IProperty {
     val required: List<String>?
-    val properties: Map<String, Property<*>>?
+    val properties: Map<String, Property>?
     val minProperties: Int?
     val maxProperties: Int?
 }
