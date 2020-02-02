@@ -1,4 +1,4 @@
-package com.jsonschema2kotlin.parser
+package com.jsonschema2kotlin.parser.model
 
 import com.squareup.moshi.JsonClass
 
@@ -22,4 +22,10 @@ data class Definition(
     override val maxProperties: Int?,
     override val enum: Set<Any?>?,
     val type: Type?
-) : INullProperty, IBooleanProperty, IStringProperty, INumberProperty<Double>, IArrayProperty, IObjectProperty, Enumerated<Any?>
+) : INullProperty,
+    IBooleanProperty,
+    IStringProperty,
+    INumberProperty<Double>,
+    IArrayProperty,
+    IObjectProperty,
+    Enumerated<Any?>

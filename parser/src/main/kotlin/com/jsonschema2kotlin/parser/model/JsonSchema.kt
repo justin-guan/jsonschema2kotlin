@@ -1,4 +1,4 @@
-package com.jsonschema2kotlin.parser
+package com.jsonschema2kotlin.parser.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -38,8 +38,8 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty, Refer
     ) : Property<Nothing>(Type.NULL), INullProperty, Enumerated<Nothing>
 
     data class StringProperty(
-        override val description: String?,
         override val title: String?,
+        override val description: String?,
         override val minLength: Int?,
         override val maxLength: Int?,
         override val enum: Set<String?>?,
@@ -48,8 +48,8 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty, Refer
     ) : Property<String>(Type.STRING), IStringProperty, Enumerated<String>
 
     data class NumberProperty(
-        override val description: String?,
         override val title: String?,
+        override val description: String?,
         override val minimum: Double?,
         override val maximum: Double?,
         override val exclusiveMinimum: Double?,
@@ -60,8 +60,8 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty, Refer
     ) : Property<Double>(Type.NUMBER), INumberProperty<Double>, Enumerated<Double>
 
     data class IntegerProperty(
-        override val description: String?,
         override val title: String?,
+        override val description: String?,
         override val minimum: Long?,
         override val maximum: Long?,
         override val exclusiveMinimum: Long?,
@@ -72,16 +72,16 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty, Refer
     ) : Property<Long>(Type.INTEGER), INumberProperty<Long>, Enumerated<Long>
 
     data class BooleanProperty(
-        override val description: String?,
         override val title: String?,
+        override val description: String?,
         override val enum: Set<Boolean?>?,
         @Json(name = "\$ref")
         override val ref: String?
     ) : Property<Boolean>(Type.BOOLEAN), IBooleanProperty, Enumerated<Boolean>
 
     data class ArrayProperty(
-        override val description: String?,
         override val title: String?,
+        override val description: String?,
         override val minItems: Int?,
         override val maxItems: Int?,
         override val items: List<Property<*>>?,
@@ -92,8 +92,8 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty, Refer
     ) : Property<List<Any?>>(Type.ARRAY), IArrayProperty, Enumerated<List<Any?>>
 
     data class ObjectProperty(
-        override val description: String?,
         override val title: String?,
+        override val description: String?,
         override val required: List<String>?,
         override val properties: Map<String, Property<*>>?,
         override val minProperties: Int?,
@@ -102,14 +102,4 @@ sealed class Property<T>(@Json(name = "type") val type: Type) : IProperty, Refer
         @Json(name = "\$ref")
         override val ref: String?
     ) : Property<Map<String, Any?>>(Type.OBJECT), IObjectProperty, Enumerated<Map<String, Any?>>
-}
-
-enum class Type(val value: String?) {
-    @Json(name = "null") NULL("null"),
-    @Json(name = "string") STRING("string"),
-    @Json(name = "number") NUMBER("number"),
-    @Json(name = "integer") INTEGER("integer"),
-    @Json(name = "boolean") BOOLEAN("boolean"),
-    @Json(name = "array") ARRAY("array"),
-    @Json(name = "object") OBJECT("object")
 }

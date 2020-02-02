@@ -1,5 +1,8 @@
 package com.jsonschema2kotlin.parser
 
+import com.jsonschema2kotlin.parser.model.JsonSchema
+import com.jsonschema2kotlin.parser.model.Property
+import com.jsonschema2kotlin.parser.model.Type
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.EnumJsonAdapter
@@ -16,9 +19,9 @@ private val moshi = Moshi.Builder()
             .withSubtype(Property.IntegerProperty::class.java, Type.INTEGER.value)
             .withSubtype(Property.BooleanProperty::class.java, Type.BOOLEAN.value)
             .withSubtype(Property.ArrayProperty::class.java, Type.ARRAY.value)
-            .withSubtype(Property.ObjectProperty::class.java, Type.OBJECT.value))
-    .add(Type::class.java, EnumJsonAdapter.create(Type::class.java)
-        .nullSafe())
+            .withSubtype(Property.ObjectProperty::class.java, Type.OBJECT.value)
+    )
+    .add(Type::class.java, EnumJsonAdapter.create(Type::class.java).nullSafe())
     .add(KotlinJsonAdapterFactory())
     .build()
 

@@ -1,4 +1,4 @@
-package com.jsonschema2kotlin.parser
+package com.jsonschema2kotlin.parser.model
 
 internal interface IProperty {
     val title: String?
