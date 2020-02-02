@@ -1,18 +1,21 @@
 package com.jsonschema2kotlin.parser
 
-import com.jsonschema2kotlin.parser.jsonadapter.PropertiesJsonAdapter
-import com.jsonschema2kotlin.parser.model.JsonSchema
-import com.jsonschema2kotlin.parser.model.Properties
-import com.jsonschema2kotlin.parser.model.RootType
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.adapters.EnumJsonAdapter
+import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.io.InputStream
 
 private val moshi = Moshi.Builder()
-    .add(Properties::class.java, PropertiesJsonAdapter())
-    .add(RootType::class.java, EnumJsonAdapter.create(RootType::class.java))
+    .add(
+        PolymorphicJsonAdapterFactory.of(Property::class.java, "type")
+            .withSubtype(Property.NullProperty::class.java, Type.NULL.value)
+            .withSubtype(Property.StringProperty::class.java, Type.STRING.value)
+            .withSubtype(Property.NumberProperty::class.java, Type.NUMBER.value)
+            .withSubtype(Property.IntegerProperty::class.java, Type.INTEGER.value)
+            .withSubtype(Property.BooleanProperty::class.java, Type.BOOLEAN.value)
+            .withSubtype(Property.ArrayProperty::class.java, Type.ARRAY.value)
+            .withSubtype(Property.ObjectProperty::class.java, Type.OBJECT.value))
     .add(KotlinJsonAdapterFactory())
     .build()
 
@@ -23,5 +26,6 @@ fun InputStream.toJsonSchema(): JsonSchema {
 }
 
 fun JsonSchema.toJsonString(): String {
-    return moshi.adapter(JsonSchema::class.java).toJson(this)
+    val adapter: JsonAdapter<JsonSchema> = moshi.adapter(JsonSchema::class.java)
+    return adapter.toJson(this)
 }
