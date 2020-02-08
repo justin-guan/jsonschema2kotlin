@@ -27,7 +27,7 @@ enum class RootType {
     OBJECT
 }
 
-sealed class Property(@Json(name = "type") val type: Type) : IProperty, Reference {
+sealed class Property(override val type: Type) : Typed, IProperty, Reference {
 
     data class NullProperty(
         override val title: String?,

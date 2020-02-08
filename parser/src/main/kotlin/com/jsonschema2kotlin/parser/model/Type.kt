@@ -26,3 +26,7 @@ enum class Type(val value: String?) {
     @Json(name = TYPE_OBJECT)
     OBJECT(TYPE_OBJECT)
 }
+
+interface Typed {
+    val type: Type
+}

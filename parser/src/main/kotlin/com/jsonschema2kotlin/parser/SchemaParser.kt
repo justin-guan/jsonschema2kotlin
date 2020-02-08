@@ -4,6 +4,7 @@ import com.jsonschema2kotlin.parser.model.JsonSchema
 import com.jsonschema2kotlin.parser.model.Property
 import com.jsonschema2kotlin.parser.model.Type
 import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.EnumJsonAdapter
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
@@ -29,7 +30,12 @@ private val moshi = Moshi.Builder()
 fun InputStream.toJsonSchema(): JsonSchema {
     val adapter: JsonAdapter<JsonSchema> = moshi.adapter(JsonSchema::class.java)
     val json = this.bufferedReader().use { it.readText() }
-    return adapter.fromJson(json)!!
+    return adapter.fromJson(json) ?: throw JsonDataException("Error parsing json")
+}
+
+fun JsonSchema.mergeDefinitionsIntoProperties(): JsonSchema {
+    val definitions = definitions ?: emptyMap()
+    return copy(properties = properties?.mergeDefinitions(definitions))
 }
 
 fun File.toJsonSchema(): Map<String, JsonSchema> {
