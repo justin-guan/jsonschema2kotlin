@@ -1,35 +1,11 @@
 {
-  "$id": "https://example.com/person.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Person",
+  "title": "Sample",
   "type": "object",
-  "required": [
-    "test"
-  ],
-  "definitions": {
-    "title": {
-      "title": "This is a title",
-      "enum": ["asdf"]
-    },
-    "description": {
-      "description": "descript"
-    }
-  },
   "properties": {
     "property": {
-      "type": "object",
-      "properties": {
-        "test": {
-          "type": "object",
-          "$ref": "#/definitions/description",
-          "properties": {
-            "test2": {
-              "type": "string",
-              "$ref": "#/definitions/title"
-            }
-          }
-        }
-      }
+      "type": "integer",
+      "$ref": "definitions.schema.json#/definitions/positive"
     }
   }
 }

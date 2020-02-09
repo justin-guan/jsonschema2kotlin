@@ -1,7 +1,9 @@
 package com.jsonschema2kotlin.parser
 
+import com.jsonschema2kotlin.parser.jsonadapter.ReferenceJsonAdapter
 import com.jsonschema2kotlin.parser.model.JsonSchema
 import com.jsonschema2kotlin.parser.model.Property
+import com.jsonschema2kotlin.parser.model.Reference
 import com.jsonschema2kotlin.parser.model.Type
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonDataException
@@ -24,48 +26,43 @@ private val moshi = Moshi.Builder()
             .withSubtype(Property.ObjectProperty::class.java, Type.OBJECT.value)
     )
     .add(Type::class.java, EnumJsonAdapter.create(Type::class.java).nullSafe())
+    .add(Reference::class.java, ReferenceJsonAdapter())
     .add(KotlinJsonAdapterFactory())
     .build()
+
+fun File.toJsonSchema(): Map<String, JsonSchema> {
+    val schemas: Map<String, JsonSchema> = walk()
+        .filter { !it.isDirectory }
+        .associate { it.name to it.inputStream().toJsonSchema() }
+    val referenceMap = ReferenceMap(schemas.mapValues { it.value.definitions })
+    return schemas.mergeDefinitionsIntoProperties(referenceMap)
+}
 
 fun InputStream.toJsonSchema(): JsonSchema {
     val adapter: JsonAdapter<JsonSchema> = moshi.adapter(JsonSchema::class.java)
     val json = this.bufferedReader().use { it.readText() }
-    return adapter.fromJson(json)?.mergeDefinitionsIntoProperties() ?: throw JsonDataException("Error parsing json")
+    return adapter.fromJson(json) ?: throw JsonDataException("Error parsing json")
 }
 
-fun JsonSchema.mergeDefinitionsIntoProperties(): JsonSchema {
-    return mergeDefinitions(MergeStrategy.Merge)
-}
-
-fun File.toJsonSchema(): Map<String, JsonSchema> {
-    val schemas = mutableMapOf<String, JsonSchema>()
-    if (this.isDirectory) {
-        walk().forEach {
-            val jsonSchema = it.inputStream().toJsonSchema()
-            schemas[jsonSchema.id] = jsonSchema
-        }
-    } else {
-        val jsonSchema = this.inputStream().toJsonSchema()
-        schemas[jsonSchema.id] = jsonSchema
-    }
-    return schemas
-}
-
-fun JsonSchema.toJsonString(): String {
-    val adapter: JsonAdapter<JsonSchema> = moshi.adapter(JsonSchema::class.java)
-    return adapter.toJson(this.unmergeDefinitionsFromProperties())
+fun Map<String, JsonSchema>.mergeDefinitionsIntoProperties(referenceMap: ReferenceMap): Map<String, JsonSchema> {
+    return mergeDefinitionsIntoProperties(referenceMap, MergeStrategy.Merge)
 }
 
 fun Map<String, JsonSchema>.toJsonString(): String {
     val adapter: JsonAdapter<Map<String, JsonSchema>> = moshi.adapter<Map<String, JsonSchema>>(Map::class.java)
-    return adapter.toJson(this.mapValues { it.value.unmergeDefinitionsFromProperties() })
+    val allDefinitions = ReferenceMap(this.mapValues { it.value.definitions })
+    return adapter.toJson(this.unmergeDefinitionsIntoProperties(allDefinitions))
 }
 
-fun JsonSchema.unmergeDefinitionsFromProperties(): JsonSchema {
-    return mergeDefinitions(MergeStrategy.Unmerge)
+fun Map<String, JsonSchema>.unmergeDefinitionsIntoProperties(referenceMap: ReferenceMap): Map<String, JsonSchema> {
+    return mergeDefinitionsIntoProperties(referenceMap, MergeStrategy.Unmerge)
 }
 
-private fun JsonSchema.mergeDefinitions(mergeStrategy: MergeStrategy): JsonSchema {
-    val definitions = definitions ?: emptyMap()
-    return copy(properties = properties?.mergeDefinitions(definitions, mergeStrategy))
+private fun Map<String, JsonSchema>.mergeDefinitionsIntoProperties(
+    referenceMap: ReferenceMap,
+    mergeStrategy: MergeStrategy
+): Map<String, JsonSchema> {
+    return this.mapValues { (_, jsonSchema) ->
+        jsonSchema.copy(properties = jsonSchema.properties?.mergeDefinitions(referenceMap, mergeStrategy))
+    }
 }

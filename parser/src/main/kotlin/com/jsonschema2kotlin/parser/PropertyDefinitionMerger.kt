@@ -4,12 +4,15 @@ import com.jsonschema2kotlin.parser.model.Definition
 import com.jsonschema2kotlin.parser.model.Property
 
 internal fun Map<String, Property>.mergeDefinitions(
-    definitions: Map<String, Definition>,
+    definitions: ReferenceMap,
     mergeStrategy: MergeStrategy
 ): Map<String, Property> =
     this.mapValues { (_, property) -> property.mergeDefinition(definitions, mergeStrategy) }
 
-private fun Property.mergeDefinition(definitions: Map<String, Definition>, mergeStrategy: MergeStrategy): Property {
+private fun Property.mergeDefinition(
+    definitions: ReferenceMap,
+    mergeStrategy: MergeStrategy
+): Property {
     val definition = findDefinition(definitions)
     return when (this) {
         is Property.NullProperty -> mergeNullPropertyDefinition(definition, mergeStrategy)
@@ -22,10 +25,8 @@ private fun Property.mergeDefinition(definitions: Map<String, Definition>, merge
     }
 }
 
-private fun Property.findDefinition(definitions: Map<String, Definition>): Definition? = ref?.let {
-    definitions[it.removePrefix("#/definitions/")]
-        ?: throw IllegalArgumentException("Reference is referencing a definition that doesn't exist")
-}
+private fun Property.findDefinition(referenceMap: ReferenceMap): Definition? =
+    referenceMap.getDefinition(this.ref)
 
 private fun Property.NullProperty.mergeNullPropertyDefinition(
     definition: Definition?,
@@ -103,7 +104,7 @@ private fun Property.ArrayProperty.mergeArrayPropertyDefinition(
 
 private fun Property.ObjectProperty.mergeObjectPropertyDefinition(
     definition: Definition?,
-    definitions: Map<String, Definition>,
+    definitions: ReferenceMap,
     mergeStrategy: MergeStrategy
 ): Property.ObjectProperty =
     this.copy(
