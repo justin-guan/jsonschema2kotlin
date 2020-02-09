@@ -3,19 +3,22 @@ package com.jsonschema2kotlin.parser
 import com.jsonschema2kotlin.parser.model.Definition
 import com.jsonschema2kotlin.parser.model.Property
 
-internal fun Map<String, Property>.mergeDefinitions(definitions: Map<String, Definition>): Map<String, Property> =
-    this.mapValues { (_, property) -> property.mergeDefinition(definitions) }
+internal fun Map<String, Property>.mergeDefinitions(
+    definitions: Map<String, Definition>,
+    mergeStrategy: MergeStrategy
+): Map<String, Property> =
+    this.mapValues { (_, property) -> property.mergeDefinition(definitions, mergeStrategy) }
 
-private fun Property.mergeDefinition(definitions: Map<String, Definition>): Property {
+private fun Property.mergeDefinition(definitions: Map<String, Definition>, mergeStrategy: MergeStrategy): Property {
     val definition = findDefinition(definitions)
     return when (this) {
-        is Property.NullProperty -> mergeNullPropertyDefinition(definition)
-        is Property.StringProperty -> mergeStringPropertyDefinition(definition)
-        is Property.NumberProperty -> mergeNumberPropertyDefinition(definition)
-        is Property.IntegerProperty -> mergeIntegerPropertyDefinition(definition)
-        is Property.BooleanProperty -> mergeBooleanPropertyDefinition(definition)
-        is Property.ArrayProperty -> mergeArrayPropertyDefinition(definition)
-        is Property.ObjectProperty -> mergeObjectPropertyDefinition(definition, definitions)
+        is Property.NullProperty -> mergeNullPropertyDefinition(definition, mergeStrategy)
+        is Property.StringProperty -> mergeStringPropertyDefinition(definition, mergeStrategy)
+        is Property.NumberProperty -> mergeNumberPropertyDefinition(definition, mergeStrategy)
+        is Property.IntegerProperty -> mergeIntegerPropertyDefinition(definition, mergeStrategy)
+        is Property.BooleanProperty -> mergeBooleanPropertyDefinition(definition, mergeStrategy)
+        is Property.ArrayProperty -> mergeArrayPropertyDefinition(definition, mergeStrategy)
+        is Property.ObjectProperty -> mergeObjectPropertyDefinition(definition, definitions, mergeStrategy)
     }
 }
 
@@ -24,83 +27,105 @@ private fun Property.findDefinition(definitions: Map<String, Definition>): Defin
         ?: throw IllegalArgumentException("Reference is referencing a definition that doesn't exist")
 }
 
-private fun Property.NullProperty.mergeNullPropertyDefinition(definition: Definition?): Property.NullProperty =
+private fun Property.NullProperty.mergeNullPropertyDefinition(
+    definition: Definition?,
+    mergeStrategy: MergeStrategy
+): Property.NullProperty =
     this.copy(
-        title = this.title ?: definition?.title,
-        description = this.description ?: definition?.description,
-        enum = this.enum, // enum cannot possibly inherit anything meaningful here
+        title = mergeStrategy.execute(this.title, definition?.title),
+        description = mergeStrategy.execute(this.description, definition?.description),
+        enum = this.enum, // cannot possibly be transformed into anything meaningful
         ref = this.ref
     )
 
-private fun Property.StringProperty.mergeStringPropertyDefinition(definition: Definition?): Property.StringProperty =
+private fun Property.StringProperty.mergeStringPropertyDefinition(
+    definition: Definition?,
+    mergeStrategy: MergeStrategy
+): Property.StringProperty =
     this.copy(
-        title = this.title ?: definition?.title,
-        description = this.description ?: definition?.description,
-        minLength = this.minLength ?: definition?.minLength,
-        maxLength = this.maxLength ?: definition?.maxLength,
-        enum = this.enum ?: definition?.enum?.inferType(),
+        title = mergeStrategy.execute(this.title, definition?.title),
+        description = mergeStrategy.execute(this.description, definition?.description),
+        minLength = mergeStrategy.execute(this.minLength, definition?.minLength),
+        maxLength = mergeStrategy.execute(this.maxLength, definition?.maxLength),
+        enum = mergeStrategy.execute(this.enum, definition?.enum?.inferType()),
         ref = this.ref
     )
 
-private fun Property.NumberProperty.mergeNumberPropertyDefinition(definition: Definition?): Property.NumberProperty =
+private fun Property.NumberProperty.mergeNumberPropertyDefinition(
+    definition: Definition?,
+    mergeStrategy: MergeStrategy
+): Property.NumberProperty =
     this.copy(
-        title = this.title ?: definition?.title,
-        description = this.description ?: definition?.description,
-        minimum = this.minimum ?: definition?.minimum,
-        maximum = this.maximum ?: definition?.maximum,
-        exclusiveMinimum = this.exclusiveMinimum ?: definition?.exclusiveMinimum,
-        exclusiveMaximum = this.exclusiveMaximum ?: definition?.exclusiveMaximum,
-        enum = this.enum ?: definition?.enum?.inferType<Number, Double> { it.toDouble() },
+        title = mergeStrategy.execute(this.title, definition?.title),
+        description = mergeStrategy.execute(this.description, definition?.description),
+        minimum = mergeStrategy.execute(this.minimum, definition?.minimum),
+        maximum = mergeStrategy.execute(this.maximum, definition?.maximum),
+        exclusiveMinimum = mergeStrategy.execute(this.exclusiveMinimum, definition?.exclusiveMinimum),
+        exclusiveMaximum = mergeStrategy.execute(this.exclusiveMaximum, definition?.exclusiveMaximum),
+        enum = mergeStrategy.execute(this.enum, definition?.enum?.inferType<Number, Double> { it.toDouble() }),
         ref = this.ref
     )
 
-private fun Property.IntegerProperty.mergeIntegerPropertyDefinition(definition: Definition?): Property.IntegerProperty =
+private fun Property.IntegerProperty.mergeIntegerPropertyDefinition(
+    definition: Definition?,
+    mergeStrategy: MergeStrategy
+): Property.IntegerProperty =
     this.copy(
-        title = this.title ?: definition?.title,
-        description = this.description ?: definition?.description,
-        minimum = this.minimum ?: definition?.minimum?.toLong(),
-        maximum = this.maximum ?: definition?.maximum?.toLong(),
-        exclusiveMinimum = this.exclusiveMinimum ?: definition?.exclusiveMinimum?.toLong(),
-        exclusiveMaximum = this.exclusiveMaximum ?: definition?.exclusiveMaximum?.toLong(),
-        enum = this.enum ?: definition?.enum?.inferType<Number, Long> { it.toLong() },
+        title = mergeStrategy.execute(this.title, definition?.title),
+        description = mergeStrategy.execute(this.description, definition?.description),
+        minimum = mergeStrategy.execute(this.minimum, definition?.minimum?.toLong()),
+        maximum = mergeStrategy.execute(this.maximum, definition?.maximum?.toLong()),
+        exclusiveMinimum = mergeStrategy.execute(this.exclusiveMinimum, definition?.exclusiveMinimum?.toLong()),
+        exclusiveMaximum = mergeStrategy.execute(this.exclusiveMaximum, definition?.exclusiveMaximum?.toLong()),
+        enum = mergeStrategy.execute(this.enum, definition?.enum?.inferType<Number, Long> { it.toLong() }),
         ref = this.ref
     )
 
-private fun Property.BooleanProperty.mergeBooleanPropertyDefinition(definition: Definition?): Property.BooleanProperty =
+private fun Property.BooleanProperty.mergeBooleanPropertyDefinition(
+    definition: Definition?,
+    mergeStrategy: MergeStrategy
+): Property.BooleanProperty =
     this.copy(
-        title = this.title ?: definition?.title,
-        description = this.description ?: definition?.description,
-        enum = this.enum ?: definition?.enum?.inferType(),
+        title = mergeStrategy.execute(this.title, definition?.title),
+        description = mergeStrategy.execute(this.description, definition?.description),
+        enum = mergeStrategy.execute(this.enum, definition?.enum?.inferType()),
         ref = this.ref
     )
 
-private fun Property.ArrayProperty.mergeArrayPropertyDefinition(definition: Definition?): Property.ArrayProperty =
+private fun Property.ArrayProperty.mergeArrayPropertyDefinition(
+    definition: Definition?,
+    mergeStrategy: MergeStrategy
+): Property.ArrayProperty =
     this.copy(
-        title = this.title ?: definition?.title,
-        description = this.description ?: definition?.description,
-        minItems = this.minItems ?: definition?.minItems,
-        maxItems = this.maxItems ?: definition?.maxItems,
-        items = this.items ?: definition?.items,
-        uniqueItems = this.uniqueItems ?: definition?.uniqueItems,
-        enum = this.enum ?: definition?.enum?.inferType(),
+        title = mergeStrategy.execute(this.title, definition?.title),
+        description = mergeStrategy.execute(this.description, definition?.description),
+        minItems = mergeStrategy.execute(this.minItems, definition?.minItems),
+        maxItems = mergeStrategy.execute(this.maxItems, definition?.maxItems),
+        items = mergeStrategy.execute(this.items, definition?.items),
+        uniqueItems = mergeStrategy.execute(this.uniqueItems, definition?.uniqueItems),
+        enum = mergeStrategy.execute(this.enum, definition?.enum?.inferType()),
         ref = this.ref
     )
 
 private fun Property.ObjectProperty.mergeObjectPropertyDefinition(
     definition: Definition?,
-    definitions: Map<String, Definition>
-): Property.ObjectProperty =
-    this.copy(
-        title = this.title ?: definition?.title,
-        description = this.description ?: definition?.description,
-        required = this.required ?: definition?.required,
-        properties = this.properties?.mergeDefinitions(definitions)
-            ?: definition?.properties?.mergeDefinitions(definitions),
-        minProperties = this.minProperties ?: definition?.minProperties,
-        maxProperties = this.maxProperties ?: definition?.maxProperties,
-        enum = this.enum ?: definition?.enum?.inferType(),
+    definitions: Map<String, Definition>,
+    mergeStrategy: MergeStrategy
+): Property.ObjectProperty {
+    return this.copy(
+        title = mergeStrategy.execute(this.title, definition?.title),
+        description = mergeStrategy.execute(this.description, definition?.description),
+        required = mergeStrategy.execute(this.required, definition?.required),
+        properties = mergeStrategy.execute(
+            this.properties?.mergeDefinitions(definitions, mergeStrategy),
+            definition?.properties?.mergeDefinitions(definitions, mergeStrategy)
+        ),
+        minProperties = mergeStrategy.execute(this.minProperties, definition?.minProperties),
+        maxProperties = mergeStrategy.execute(this.maxProperties, definition?.maxProperties),
+        enum = mergeStrategy.execute(this.enum, definition?.enum?.inferType()),
         ref = this.ref
     )
+}
 
 private inline fun <reified T, reified R> Set<Any?>.inferType(mapper: (T) -> R) =
     this.filterIsInstance<T>()
@@ -110,3 +135,19 @@ private inline fun <reified T, reified R> Set<Any?>.inferType(mapper: (T) -> R) 
         ?: throw IllegalArgumentException("Enum arguments are not all of type ${R::class.java}")
 
 private inline fun <reified T> Set<Any?>.inferType() = this.inferType<T, T> { it }
+
+internal sealed class MergeStrategy {
+    abstract fun <T> execute(propertyValue: T?, definitionValue: T?): T?
+
+    object Merge : MergeStrategy() {
+        override fun <T> execute(propertyValue: T?, definitionValue: T?): T? {
+            return propertyValue ?: definitionValue
+        }
+    }
+
+    object Unmerge : MergeStrategy() {
+        override fun <T> execute(propertyValue: T?, definitionValue: T?): T? {
+            return propertyValue?.takeIf { it != definitionValue }
+        }
+    }
+}

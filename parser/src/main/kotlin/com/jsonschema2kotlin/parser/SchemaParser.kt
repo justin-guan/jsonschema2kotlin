@@ -30,12 +30,11 @@ private val moshi = Moshi.Builder()
 fun InputStream.toJsonSchema(): JsonSchema {
     val adapter: JsonAdapter<JsonSchema> = moshi.adapter(JsonSchema::class.java)
     val json = this.bufferedReader().use { it.readText() }
-    return adapter.fromJson(json) ?: throw JsonDataException("Error parsing json")
+    return adapter.fromJson(json)?.mergeDefinitionsIntoProperties() ?: throw JsonDataException("Error parsing json")
 }
 
 fun JsonSchema.mergeDefinitionsIntoProperties(): JsonSchema {
-    val definitions = definitions ?: emptyMap()
-    return copy(properties = properties?.mergeDefinitions(definitions))
+    return mergeDefinitions(MergeStrategy.Merge)
 }
 
 fun File.toJsonSchema(): Map<String, JsonSchema> {
@@ -54,5 +53,19 @@ fun File.toJsonSchema(): Map<String, JsonSchema> {
 
 fun JsonSchema.toJsonString(): String {
     val adapter: JsonAdapter<JsonSchema> = moshi.adapter(JsonSchema::class.java)
-    return adapter.toJson(this)
+    return adapter.toJson(this.unmergeDefinitionsFromProperties())
+}
+
+fun Map<String, JsonSchema>.toJsonString(): String {
+    val adapter: JsonAdapter<Map<String, JsonSchema>> = moshi.adapter<Map<String, JsonSchema>>(Map::class.java)
+    return adapter.toJson(this.mapValues { it.value.unmergeDefinitionsFromProperties() })
+}
+
+fun JsonSchema.unmergeDefinitionsFromProperties(): JsonSchema {
+    return mergeDefinitions(MergeStrategy.Unmerge)
+}
+
+private fun JsonSchema.mergeDefinitions(mergeStrategy: MergeStrategy): JsonSchema {
+    val definitions = definitions ?: emptyMap()
+    return copy(properties = properties?.mergeDefinitions(definitions, mergeStrategy))
 }
