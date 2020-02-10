@@ -2,10 +2,15 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Sample",
   "type": "object",
+  "definitions": {
+    "test": {
+      "minimum": 0
+    }
+  },
   "properties": {
     "property": {
       "type": "integer",
-      "$ref": "definitions.schema.json#/definitions/positive"
+      "$ref": "#/definitions/test"
     }
   }
 }

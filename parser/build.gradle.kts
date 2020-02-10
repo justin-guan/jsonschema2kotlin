@@ -17,7 +17,8 @@ dependencies {
     implementation(Dependencies.moshiAdapters)
 
     testImplementation(TestDependencies.junit)
-    testImplementation(TestDependencies.kluent)
+    testImplementation(TestDependencies.hamcrest)
+    testImplementation(TestDependencies.mockk)
 }
 
 tasks.withType<Test> {
