@@ -34,8 +34,7 @@ fun File.toJsonSchema(): Map<String, JsonSchema> {
     val schemas: Map<String, JsonSchema> = walk()
         .filter { !it.isDirectory }
         .associate { it.name to it.inputStream().toJsonSchema() }
-    val referenceMap = ReferenceMap(schemas.mapValues { it.value.definitions })
-    return schemas.mergeDefinitionsIntoProperties(referenceMap)
+    return schemas.mergeDefinitionsIntoProperties()
 }
 
 fun InputStream.toJsonSchema(): JsonSchema {
@@ -44,25 +43,25 @@ fun InputStream.toJsonSchema(): JsonSchema {
     return adapter.fromJson(json) ?: throw JsonDataException("Error parsing json")
 }
 
-fun Map<String, JsonSchema>.mergeDefinitionsIntoProperties(referenceMap: ReferenceMap): Map<String, JsonSchema> {
-    return mergeDefinitionsIntoProperties(referenceMap, MergeStrategy.Merge)
+fun Map<String, JsonSchema>.mergeDefinitionsIntoProperties(): Map<String, JsonSchema> {
+    return mergeDefinitionsIntoProperties(MergeStrategy.Merge)
 }
 
 fun Map<String, JsonSchema>.toJsonString(): String {
     val adapter: JsonAdapter<Map<String, JsonSchema>> = moshi.adapter<Map<String, JsonSchema>>(Map::class.java)
-    val allDefinitions = ReferenceMap(this.mapValues { it.value.definitions })
-    return adapter.toJson(this.unmergeDefinitionsIntoProperties(allDefinitions))
+    return adapter.toJson(this.unmergeDefinitionsIntoProperties())
 }
 
-fun Map<String, JsonSchema>.unmergeDefinitionsIntoProperties(referenceMap: ReferenceMap): Map<String, JsonSchema> {
-    return mergeDefinitionsIntoProperties(referenceMap, MergeStrategy.Unmerge)
+fun Map<String, JsonSchema>.unmergeDefinitionsIntoProperties(): Map<String, JsonSchema> {
+    return mergeDefinitionsIntoProperties(MergeStrategy.Unmerge)
 }
 
 private fun Map<String, JsonSchema>.mergeDefinitionsIntoProperties(
-    referenceMap: ReferenceMap,
     mergeStrategy: MergeStrategy
 ): Map<String, JsonSchema> {
-    return this.mapValues { (_, jsonSchema) ->
+    val definitions = this.mapValues { it.value.definitions }
+    return this.mapValues { (filename, jsonSchema) ->
+        val referenceMap = ReferenceMap(filename, definitions)
         jsonSchema.copy(properties = jsonSchema.properties?.mergeDefinitions(referenceMap, mergeStrategy))
     }
 }

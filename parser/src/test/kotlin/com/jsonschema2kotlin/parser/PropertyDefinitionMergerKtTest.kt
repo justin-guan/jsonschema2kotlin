@@ -33,7 +33,10 @@ class PropertyDefinitionMergerKtTest {
         enum = null,
         type = null
     )
-    private val referenceMap = ReferenceMap(mapOf(referenceFile to mapOf(referenceKey to definition)))
+    private val referenceMap = ReferenceMap(
+        referenceFile,
+        mapOf(referenceFile to mapOf(referenceKey to definition))
+    )
 
     @Test
     fun `should merge null property with definition`() {

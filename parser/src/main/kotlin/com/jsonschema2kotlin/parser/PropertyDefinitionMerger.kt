@@ -25,8 +25,9 @@ private fun Property.mergeDefinition(
     }
 }
 
-private fun Property.findDefinition(referenceMap: ReferenceMap): Definition? =
-    referenceMap.getDefinition(this.ref)
+private fun Property.findDefinition(referenceMap: ReferenceMap): Definition? {
+    return referenceMap.getDefinition(this.ref)
+}
 
 private fun Property.NullProperty.mergeNullPropertyDefinition(
     definition: Definition?,

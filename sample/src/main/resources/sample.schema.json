@@ -4,13 +4,18 @@
   "type": "object",
   "definitions": {
     "test": {
-      "minimum": 0
+      "minimum": 12,
+      "maximum": 100
     }
   },
   "properties": {
     "property": {
       "type": "integer",
       "$ref": "#/definitions/test"
+    },
+    "positiveProperty": {
+      "type": "number",
+      "$ref": "definitions.schema.json#/definitions/positive"
     }
   }
 }
