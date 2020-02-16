@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Test",
+  "type": "object",
+  "definitions": {
+    "localReference": {
+      "description": "Local Reference"
+    }
+  },
+  "properties": {
+    "stringProperty": {
+      "type": "string",
+      "title": "stringProperty title",
+      "description": "stringProperty description",
+      "$ref": "definitions.schema.json#/definitions/stringLength"
+    },
+    "numberProperty1": {
+      "type": "number",
+      "title": "numberProperty1 title",
+      "description": "numberProperty1 description",
+      "$ref": "definitions.schema.json#/definitions/numberRange"
+    },
+    "numberProperty2": {
+      "type": "number",
+      "title": "numberProperty2 title",
+      "description": "numberProperty2 description",
+      "$ref": "definitions.schema.json#/definitions/exclusiveNumberRange"
+    },
+    "integerProperty1": {
+      "type": "integer",
+      "title": "integerProperty1 title",
+      "description": "integerProperty1 description",
+      "$ref": "definitions.schema.json#/definitions/numberRange"
+    },
+    "integerProperty2": {
+      "type": "integer",
+      "title": "integerProperty2 title",
+      "description": "integerProperty2 description",
+      "$ref": "definitions.schema.json#/definitions/exclusiveNumberRange"
+    },
+    "booleanProperty": {
+      "type": "boolean",
+      "title": "booleanProperty title",
+      "description": "booleanProperty description",
+      "$ref": "definitions.schema.json#/definitions/booleanTypes"
+    },
+    "nullProperty": {
+      "type": "null",
+      "title": "nullProperty title",
+      "description": "nullProperty description"
+    },
+    "arrayProperty": {
+      "type": "array",
+      "title": "arrayProperty title",
+      "description": "arrayProperty description",
+      "minItems": 0,
+      "maxItems": 100
+    },
+    "objectProperty": {
+      "type": "object",
+      "title": "objectProperty title",
+      "$ref":  "#/definitions/localReference",
+      "minProperties": 0,
+      "maxProperties": 100,
+      "properties": {
+        "subProperty": {
+          "type": "string",
+          "title": "subProperty title",
+          "$ref":  "#/definitions/localReference"
+        }
+      },
+      "required": [
+        "subProperty"
+      ]
+    }
+  }
+}

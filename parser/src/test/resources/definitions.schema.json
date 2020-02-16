@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Definitions",
+  "definitions": {
+    "stringLength": {
+      "minLength": 0,
+      "maxLength": 100,
+      "enum": ["enum1", "enum2"]
+    },
+    "numberRange": {
+      "minimum": 0,
+      "maximum": 100
+    },
+    "exclusiveNumberRange": {
+      "exclusiveMinimum": 0,
+      "exclusiveMaximum": 100
+    },
+    "booleanTypes": {
+      "enum": [true, false]
+    }
+  }
+}
