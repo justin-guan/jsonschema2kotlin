@@ -7,10 +7,13 @@ import com.squareup.moshi.JsonWriter
 
 class ReferenceJsonAdapter : JsonAdapter<Reference>() {
     override fun fromJson(reader: JsonReader): Reference {
-        return Reference(reader.nextString())
+        val reference = reader.nextString() ?: throw IllegalArgumentException("Expected reference to not be null")
+        return Reference(reference)
     }
 
     override fun toJson(writer: JsonWriter, value: Reference?) {
-        value?.let { writer.value(it.ref) }
+        value?.let {
+            writer.value(it.ref)
+        }
     }
 }

@@ -8,6 +8,10 @@ internal interface ReferenceHolder {
 }
 
 data class Reference(val ref: String) {
+    init {
+        require(Regex(".*#/definitions/.*").matches(ref))
+    }
+
     internal val definitionPath = this.ref.takeLastWhile { it != DELIMITER }.removePrefix(DEFINITIONS_PATH)
 
     internal fun fileName(localReferenceLocation: String): String {
