@@ -1,5 +1,6 @@
 private object Versions {
     const val moshiVersion = "1.9.2"
+    const val kotlinPoetVersion = "1.5.0"
 
     const val junitVersion = "5.6.0"
     const val mockkVersion = "1.9"
@@ -8,6 +9,7 @@ private object Versions {
 object Dependencies {
     const val moshiKotlin = "com.squareup.moshi:moshi-kotlin:${Versions.moshiVersion}"
     const val moshiAdapters = "com.squareup.moshi:moshi-adapters:${Versions.moshiVersion}"
+    const val kotlinPoet = "com.squareup:kotlinpoet:${Versions.kotlinPoetVersion}"
 }
 
 object TestDependencies {

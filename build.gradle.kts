@@ -6,6 +6,12 @@ plugins {
     kotlin("jvm")
 }
 
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
 subprojects {
     apply(plugin = "java")
 

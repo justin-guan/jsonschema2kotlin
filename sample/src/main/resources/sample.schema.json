@@ -5,17 +5,65 @@
   "definitions": {
     "test": {
       "minimum": 12,
-      "maximum": 100
+      "maximum": 100,
+      "properties": {
+        "asdf": {
+          "type": "string"
+        }
+      }
+    },
+    "numberEnum": {
+      "enum": [1, 2, 3]
     }
   },
   "properties": {
+    "nullProperty": {
+      "type": "null"
+    },
+    "stringProperty": {
+      "type": "string",
+      "description": "Description",
+      "enum": ["Test", "Test2", "test3"]
+    },
+    "obj": {
+      "type": "object",
+      "properties": {
+        "stringProperty": {
+          "type": "string",
+          "enum": ["string1", "string2"]
+        }
+      }
+    },
     "property": {
       "type": "integer",
-      "$ref": "#/definitions/test"
+      "$ref": "#/definitions/numberEnum"
     },
     "positiveProperty": {
       "type": "number",
-      "$ref": "definitions.schema.json#/definitions/positive"
+      "$ref": "#/definitions/numberEnum"
+    },
+    "booleanProperty": {
+      "type": "boolean",
+      "enum": [true, false]
+    },
+    "arrayProperty": {
+      "type": "array"
+    },
+    "objectProperty": {
+      "type": "object",
+      "properties": {
+        "nestedObject": {
+          "type": "object",
+          "properties": {
+            "nestedString": {
+              "type": "string"
+            },
+            "nestedInteger": {
+              "type": "integer"
+            }
+          }
+        }
+      }
     }
   }
 }

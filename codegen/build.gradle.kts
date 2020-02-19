@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
     implementation(project(":parser"))
+    implementation(Dependencies.kotlinPoet)
 
     testImplementation(TestDependencies.junit)
     testImplementation(TestDependencies.hamcrest)
